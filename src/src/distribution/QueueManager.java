@@ -16,7 +16,8 @@ public class QueueManager implements IQueueManager {
 	}
 	
 	public void instantiateQueues() {
-		queues.put("submit", new Queue()); // subscribers e publishers enviam para essa fila
+		queues.put("publish", new Queue()); // publishers enviam para essa fila
+		queues.put("subscribe", new Queue()); // subscribers enviam para essa fila
 		queues.put("send", new Queue()); // usada pelo broker para enviar mensagens para os 
 										//subscribers (principalmente) e publishers
 	}
