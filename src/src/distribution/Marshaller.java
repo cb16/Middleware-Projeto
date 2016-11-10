@@ -8,7 +8,7 @@ import java.io.ObjectOutputStream;
 
 
 public class Marshaller {
-	public byte[] marshall(Message message) throws IOException {
+	public byte[] marshallMessage(Message message) throws IOException {
 		ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
 		ObjectOutputStream objectStream = new ObjectOutputStream(byteStream);
 		
@@ -16,11 +16,26 @@ public class Marshaller {
 		return byteStream.toByteArray();
 	}
 	
-	public Message unmarshall(byte[] bytes) throws IOException, ClassNotFoundException {
+	public Message unmarshallMessageMessage(byte[] bytes) throws IOException, ClassNotFoundException {
 		ByteArrayInputStream byteStream = new ByteArrayInputStream(bytes);
 		ObjectInputStream objectStream = new ObjectInputStream(byteStream);
 		
 		return (Message) objectStream.readObject();
+	}
+	
+	public byte[] marshallRequestPacket(RequestPacket requestPacket) throws IOException {
+		ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+		ObjectOutputStream objectStream = new ObjectOutputStream(byteStream);
+		
+		objectStream.writeObject(requestPacket);
+		return byteStream.toByteArray();
+	}
+	
+	public RequestPacket unmarshallRequestPacket(byte[] bytes) throws IOException, ClassNotFoundException {
+		ByteArrayInputStream byteStream = new ByteArrayInputStream(bytes);
+		ObjectInputStream objectStream = new ObjectInputStream(byteStream);
+		
+		return (RequestPacket) objectStream.readObject();
 	}
 
 }
