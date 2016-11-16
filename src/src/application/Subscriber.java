@@ -25,7 +25,7 @@ public class Subscriber {
 		subscribeQueueManagerProxy.send(message, Operation.SUBSCRIBE);
 	}
 	
-	public ArrayList<String> list() throws UnknownHostException, IOException {
+	public ArrayList<String> list() throws UnknownHostException, IOException, ClassNotFoundException {
 		subscribeQueueManagerProxy.send(null, Operation.LIST);
 		
 		Message listMessage = subscribeQueueManagerProxy.receive();

@@ -16,7 +16,7 @@ public class Marshaller {
 		return byteStream.toByteArray();
 	}
 	
-	public Message unmarshallMessageMessage(byte[] bytes) throws IOException, ClassNotFoundException {
+	public Message unmarshallMessage(byte[] bytes) throws IOException, ClassNotFoundException {
 		ByteArrayInputStream byteStream = new ByteArrayInputStream(bytes);
 		ObjectInputStream objectStream = new ObjectInputStream(byteStream);
 		

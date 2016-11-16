@@ -35,7 +35,15 @@ public class QueueManagerProxy {
 		
 	}
 	
-	public Message receive() {
+	public Message receive() throws IOException, ClassNotFoundException {
+		ClientRequestHandler requestHandler = new ClientRequestHandler("localhost", Config.port, false);
 		
+		Marshaller marshaller = new Marshaller();
+		
+		byte[] bytes = requestHandler.receive();
+		
+		Message message = marshaller.unmarshallMessage(bytes);
+		
+		return message;
 	}
 }

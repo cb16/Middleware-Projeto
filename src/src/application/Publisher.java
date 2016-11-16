@@ -15,7 +15,7 @@ public class Publisher {
 		publishQueueManagerProxy.send(message, Operation.PUBLISH);
 	}
 	
-	public static ArrayList<String> list() throws UnknownHostException, IOException {
+	public static ArrayList<String> list() throws UnknownHostException, IOException, ClassNotFoundException {
 		publishQueueManagerProxy.send(null, Operation.LIST);
 		
 		Message listMessage = publishQueueManagerProxy.receive();
