@@ -13,15 +13,22 @@ public class QueueManagerProxy {
 		this.queueName = queueName;
 	}
 	
-	public void send(Message message) throws UnknownHostException, IOException {
+	public void send(Message message, Enum operation) throws UnknownHostException, IOException {
 		
 		ClientRequestHandler requestHandler = new ClientRequestHandler("localhost", Config.port, false);
 		Marshaller marshaller = new Marshaller();
-		RequestPacket requestPacket = new RequestPacket();
-		
-		//Configuração da mensagem
+		RequestPacket requestPacket;
 		
 		//Configuração do pacote
+		if(operation == Operation.LIST) {
+			RequestPacketHeader packetHeader = new RequestPacketHeader(operation);
+			RequestPacketBody packetBody = new RequestPacketBody(null, null);
+			requestPacket = new RequestPacket(packetHeader, packetBody);
+		} else {
+			RequestPacketHeader packetHeader = new RequestPacketHeader(operation);
+			RequestPacketBody packetBody = new RequestPacketBody(message, null);
+			requestPacket = new RequestPacket(packetHeader, packetBody);
+		}
 		
 		//Envio da requisição
 		requestHandler.send(marshaller.marshallRequestPacket(requestPacket));

@@ -3,5 +3,9 @@ package distribution;
 import java.io.Serializable;
 
 public class RequestPacketHeader implements Serializable {
-	private String operation;
+	private Enum operation;
+	
+	public RequestPacketHeader(Enum operation) {
+		this.operation = operation;
+	}
 }
