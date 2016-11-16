@@ -11,4 +11,12 @@ public class RequestPacketBody implements Serializable {
 		this.message = message;
 		this.parameters = parameters;
 	}
+
+	public Message getMessage() {
+		return message;
+	}
+
+	public ArrayList<Object> getParameters() {
+		return parameters;
+	}
 }

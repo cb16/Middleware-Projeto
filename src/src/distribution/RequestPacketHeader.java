@@ -8,4 +8,8 @@ public class RequestPacketHeader implements Serializable {
 	public RequestPacketHeader(Enum operation) {
 		this.operation = operation;
 	}
+
+	public Enum getOperation() {
+		return operation;
+	}
 }

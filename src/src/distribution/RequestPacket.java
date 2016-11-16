@@ -10,4 +10,12 @@ public class RequestPacket implements Serializable {
 		this.header = header;
 		this.body = body;
 	}
+
+	public RequestPacketHeader getHeader() {
+		return header;
+	}
+
+	public RequestPacketBody getBody() {
+		return body;
+	}
 }

@@ -15,4 +15,16 @@ public class TopicRepository {
 		this.topicPublisherRepo = new HashMap<String, PublisherUser>();
 	}
 
+	public ArrayList<String> getTopics() {
+		return topics;
+	}
+
+	public Map<String, Message> getTopicPublicationsRepo() {
+		return topicPublicationsRepo;
+	}
+
+	public Map<String, PublisherUser> getTopicPublisherRepo() {
+		return topicPublisherRepo;
+	}
+
 }

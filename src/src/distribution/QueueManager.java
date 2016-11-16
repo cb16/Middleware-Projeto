@@ -1,18 +1,27 @@
 package distribution;
 
+import infrastructure.ServerRequestHandler;
+
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
+import utils.Config;
 
 public class QueueManager implements IQueueManager {
 	private String host;
 	private int port;
 	Map<String, Queue> queues;
+	private ServerRequestHandler requestHandler;
+	private Marshaller marshaller;
 	
 	public QueueManager(String host, int port) {
 		this.host = host;
 		this.port = port;
 		this.queues = new HashMap<String, Queue>();
 		instantiateQueues();
+		this.requestHandler = new ServerRequestHandler(Config.port);
+		this.marshaller = new Marshaller();
 	}
 	
 	public void instantiateQueues() {
@@ -22,13 +31,17 @@ public class QueueManager implements IQueueManager {
 										//subscribers (principalmente) e publishers
 	}
 
-	public void send() {
-		// TODO Auto-generated method stub
+	public void send(Message message) {
+		
 		
 	}
 
-	public void receive() {
-		// TODO Auto-generated method stub
+	public RequestPacket receive() throws IOException, ClassNotFoundException {
 		
+		//mudar para colocar na fila!
+		
+		byte[] bytes = requestHandler.receive();
+		RequestPacket requestPacket = marshaller.unmarshallRequestPacket(bytes);
+		return requestPacket;
 	}
 }
