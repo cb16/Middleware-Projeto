@@ -35,9 +35,11 @@ public class ClientRequestHandler {
 		outToServer.flush();
 		
 		if(!isExpectedReply()) {
+			System.out.println("closed");
 			clientSocket.close();
 			outToServer.close();
 			inFromServer.close();
+			return;
 		}
 	}
 	

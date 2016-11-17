@@ -6,25 +6,30 @@ import java.util.Map;
 
 public class TopicRepository {
 	private ArrayList<String> topics;
-	private Map<String, Message> topicPublicationsRepo;
-	private Map<String, PublisherUser> topicPublisherRepo;
+	private Map<String, ArrayList<Message>> topicPublicationsRepo;
+	private Map<String, ArrayList<PublisherUser>> topicPublisherRepo;
 	
 	public TopicRepository() {
 		this.topics = new ArrayList<String>();
-		this.topicPublicationsRepo = new HashMap<String, Message>();
-		this.topicPublisherRepo = new HashMap<String, PublisherUser>();
+		this.topicPublicationsRepo = new HashMap<String, ArrayList<Message>>();
+		this.topicPublisherRepo = new HashMap<String, ArrayList<PublisherUser>>();
 	}
 
 	public ArrayList<String> getTopics() {
 		return topics;
 	}
 
-	public Map<String, Message> getTopicPublicationsRepo() {
+	public Map<String, ArrayList<Message>> getTopicPublicationsRepo() {
 		return topicPublicationsRepo;
 	}
 
-	public Map<String, PublisherUser> getTopicPublisherRepo() {
+	public Map<String, ArrayList<PublisherUser>> getTopicPublisherRepo() {
 		return topicPublisherRepo;
+	}
+
+	public void addTopic(String topic) {
+		this.topics.add(topic);
+		
 	}
 
 }
