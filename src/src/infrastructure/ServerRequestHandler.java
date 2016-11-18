@@ -10,11 +10,13 @@ import distribution.Marshaller;
 import distribution.Message;
 import distribution.Operation;
 import distribution.RequestPacket;
+import distribution.ServerSocketThread;
 
 public class ServerRequestHandler {
 	private int port;
 	private ServerSocket welcomeSocket = null;
-	public Socket connectionSocket = null;
+	private Socket connectionSocket = null;
+	private static int idCounter;
 	
 	int sentMessageSize;
 	int receivedMessageSize;
@@ -23,18 +25,28 @@ public class ServerRequestHandler {
 	
 	public ServerRequestHandler(int port) {
 		this.port = port;
+		this.idCounter = 0;
 	}
 	
-	public byte[] receive() throws IOException {
+	public ServerSocketThread receive() throws IOException {
 		System.out.println("server waiting for request");
 		welcomeSocket = new ServerSocket(this.port);
 		connectionSocket = welcomeSocket.accept();
 		
-		inFromClient = new DataInputStream(connectionSocket.getInputStream());
+		byte[] receivedMessage;
+		
+		ServerSocketThread connectionThread = new ServerSocketThread(idCounter, connectionSocket);
+		connectionThread.run();
+		
+		idCounter++;
+
+		//while((receivedMessage = connectionThread.getReceivedMessage()) == null) continue;
+		
+		/*inFromClient = new DataInputStream(connectionSocket.getInputStream());
 		outToClient = new DataOutputStream(connectionSocket.getOutputStream());
 		
 		receivedMessageSize = inFromClient.readInt();
-		byte[] receivedMessage = new byte[receivedMessageSize];
+		 = new byte[receivedMessageSize];
 		inFromClient.read(receivedMessage, 0, receivedMessageSize);
 		
 		if(!messageHasResponse(receivedMessage)) {
@@ -42,9 +54,9 @@ public class ServerRequestHandler {
 			welcomeSocket.close();
 			outToClient.close();
 			inFromClient.close();
-		}
+		}*/
 		
-		return receivedMessage;
+		return connectionThread;
 	}
 	
 	public void send(byte[] message) throws IOException {

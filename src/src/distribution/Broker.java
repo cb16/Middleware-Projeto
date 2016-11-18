@@ -84,7 +84,7 @@ public class Broker extends Thread {
 		
 		topicRepo.addPublication(topic, message);
 		
-		checkTopicSubscribersAndSend(topic);
+		checkTopicSubscribersAndSend(topic, message);
 	}
 	
 	private static void repoSubscribe(Message message) {
@@ -104,9 +104,13 @@ public class Broker extends Thread {
 		topicRepo.addTopicPublish(topic);
 	}
 	
-	private static void checkTopicSubscribersAndSend(String topic) {
+	private static void checkTopicSubscribersAndSend(String topic, Message message) {
 		ArrayList<SubscribeUser> users = topicRepo.getTopicSubscribersRepo().get(topic);
 		System.out.println(">Subscribers for " + topic);
 		System.out.println(users);
+		
+		for(SubscribeUser user : users) {
+			queueManager.enqueueSendMessage(message);
+		}
 	}
 }

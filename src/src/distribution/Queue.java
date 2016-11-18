@@ -3,7 +3,7 @@ package distribution;
 import java.util.ArrayList;
 
 public class Queue {
-	private ArrayList<Message> queue;
+	public ArrayList<Message> queue;
 	
 	public Queue() {
 		this.queue = new ArrayList<Message>();

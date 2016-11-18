@@ -3,6 +3,7 @@ package distribution;
 import infrastructure.ServerRequestHandler;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,9 +12,10 @@ import utils.Config;
 public class QueueManager extends Thread implements IQueueManager {
 	private String host;
 	private int port;
-	Map<String, Queue> queues;
+	public static Map<String, Queue> queues;
 	private ServerRequestHandler requestHandler;
 	private Marshaller marshaller;
+	private ArrayList<ServerSocketThread> connections;
 	
 	public QueueManager(String host, int port) {
 		this.host = host;
@@ -31,8 +33,20 @@ public class QueueManager extends Thread implements IQueueManager {
 		queues.put("send", new Queue()); // usada pelo broker para enviar mensagens para os 
 										//subscribers (principalmente) e publishers
 	}
+	
+	public void enqueueSendMessage(Message message) {
+		Queue q = queues.get("send");
+		System.out.println("antes");
+		System.out.println(q.queue);
+		queues.get("send").enqueue(message);
+		q = queues.get("send");
+		System.out.println("after");
+		System.out.println(q.queue);
+	}
 
 	public void send(Message message) throws IOException {
+		
+		int connectionId = message.getBody().getConnectionId();
 		
 		byte[] bytes = marshaller.marshallMessage(message);
 		
@@ -42,23 +56,8 @@ public class QueueManager extends Thread implements IQueueManager {
 
 	public void receive() throws IOException, ClassNotFoundException {
 		
-		byte[] bytes = requestHandler.receive();
-		RequestPacket requestPacket = marshaller.unmarshallRequestPacket(bytes);
+		connections.add(requestHandler.receive());
 		
-		Operation operation = (Operation) requestPacket.getHeader().getOperation();
-		Message message = requestPacket.getBody().getMessage();
-		
-		switch(operation) {
-			case LIST:
-				queues.get("list").enqueue(message);
-				break;
-			case PUBLISH:
-				queues.get("publish").enqueue(message);
-				break;
-			case SUBSCRIBE:
-				queues.get("subscribe").enqueue(message);
-				break;
-		}
 	}
 	
 	public void run() {
@@ -70,9 +69,7 @@ public class QueueManager extends Thread implements IQueueManager {
 		}
 		while(true) {
 			try {
-				if(queues.get("send").queueSize() == 0 
-						&& requestHandler.connectionSocket.isClosed())
-					receive();
+				receive();
 			} catch (ClassNotFoundException | IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

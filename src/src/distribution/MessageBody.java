@@ -12,6 +12,7 @@ public class MessageBody implements Serializable {
 	private ArrayList<String> list;
 	private String topic;
 	private InetAddress ip;
+	private int connectionId;
 	
 	public MessageBody(String location, Date date, double temperature) {
 		this.location = location;
@@ -50,5 +51,13 @@ public class MessageBody implements Serializable {
 	
 	public InetAddress getIP() {
 		return ip;
+	}
+	
+	public int getConnectionId() {
+		return connectionId;
+	}
+	
+	public void setConnectionId(int conId) {
+		connectionId = conId;
 	}
 }
