@@ -1,6 +1,7 @@
 package distribution;
 
 import java.io.Serializable;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -10,6 +11,7 @@ public class MessageBody implements Serializable {
 	private double temperature;
 	private ArrayList<String> list;
 	private String topic;
+	private InetAddress ip;
 	
 	public MessageBody(String location, Date date, double temperature) {
 		this.location = location;
@@ -21,8 +23,9 @@ public class MessageBody implements Serializable {
 		this.list = list;
 	}
 
-	public MessageBody(String topic) {
+	public MessageBody(String topic, InetAddress ip) {
 		this.topic = topic;
+		this.ip = ip;
 	}
 	
 	public String getLocation() {
@@ -43,5 +46,9 @@ public class MessageBody implements Serializable {
 	
 	public String getTopic() {
 		return topic;
+	}
+	
+	public InetAddress getIP() {
+		return ip;
 	}
 }

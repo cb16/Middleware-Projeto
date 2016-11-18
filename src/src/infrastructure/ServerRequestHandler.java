@@ -52,7 +52,6 @@ public class ServerRequestHandler {
 		sentMessageSize = message.length;
 		outToClient.writeInt(sentMessageSize);
 		outToClient.write(message, 0, sentMessageSize);
-		System.out.println("SENT");
 		
 		connectionSocket.close();
 		welcomeSocket.close();

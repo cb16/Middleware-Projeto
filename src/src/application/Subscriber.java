@@ -1,6 +1,7 @@
 package application;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -17,10 +18,10 @@ import distribution.QueueManagerProxy;
 public class Subscriber {
 	static QueueManagerProxy subscribeQueueManagerProxy = new QueueManagerProxy("subscribe");
 	
-	public void subscribe(String topic) throws UnknownHostException, IOException {
+	public static void subscribe(String topic) throws UnknownHostException, IOException {
 		//formating message
 		MessageHeader header = new MessageHeader();
-		MessageBody body = new MessageBody(topic);
+		MessageBody body = new MessageBody(topic, InetAddress.getLocalHost());
 		Message message = new Message(header, body);
 		
 		//sending message
@@ -41,7 +42,7 @@ public class Subscriber {
 		Scanner in = new Scanner(System.in);
 		
 		while(true) {
-			System.out.println("Commands:\n1- list topics");
+			System.out.println("Comandos:\n1- Listar localizações\n2- Subscribe");
 			
 			int num = in.nextInt();
 			
@@ -55,6 +56,11 @@ public class Subscriber {
 					}	
 				}
 				
+			} else if(num == 2) {
+				System.out.println("Digite a localização que vocẽ tem interesse");
+				in.nextLine();
+				String topic = in.nextLine();
+				subscribe(topic);
 			}
 		}
 	}

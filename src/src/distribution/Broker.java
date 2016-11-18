@@ -35,8 +35,6 @@ public class Broker extends Thread {
 				message = queueManager.queues.get("list").dequeue();
 				System.out.println("broker received list request");
 				Message sendMessage = formatListingMessage();
-				System.out.println("answer from list");
-				System.out.println(sendMessage.getBody());
 				queueManager.queues.get("send").enqueue(sendMessage);
 			}
 			
@@ -49,13 +47,12 @@ public class Broker extends Thread {
 			if(queueManager.queues.get("subscribe").queueSize() > 0) {
 				message = queueManager.queues.get("subscribe").dequeue();
 				System.out.println("broker received subscribe message");
-				
+				repoSubscribe(message);
 			}
 			
 			if(queueManager.queues.get("send").queueSize() > 0) {
 				message = queueManager.queues.get("send").dequeue();
 				System.out.println("broker sending response message");
-				System.out.println(message.getBody().getLocation());
 				try {
 					queueManager.send(message);
 				} catch (IOException e) {
@@ -82,19 +79,34 @@ public class Broker extends Thread {
 	private static void repoPublish(Message message) {
 		String topic = message.getBody().getLocation();
 		
-		if(topicRepo.getTopics().contains(topic)) {
-			ArrayList<Message> topicPub = topicRepo.getTopicPublicationsRepo().get(topic);
-			topicPub.add(message);
-			topicRepo.getTopicPublicationsRepo().put(topic, topicPub);
-		} else {
-			topicRepo.addTopic(topic);
-			ArrayList<Message> topicPub = new ArrayList<Message>();
-			topicPub.add(message);
-			topicRepo.getTopicPublicationsRepo().put(topic, topicPub);
-		}
+		if(!topicRepo.getTopics().contains(topic))
+			createTopicInRepo(topic);
+		
+		topicRepo.addPublication(topic, message);
+		
+		checkTopicSubscribersAndSend(topic);
 	}
 	
-	private static void repoSubscribe(MessageBody body) {
+	private static void repoSubscribe(Message message) {
+		String topic = message.getBody().getTopic();
 		
+		SubscribeUser user = new SubscribeUser(message.getBody().getIP(), Config.port);
+		
+		if(!topicRepo.getTopics().contains(topic))
+			createTopicInRepo(topic);
+		
+		topicRepo.addSubscriber(topic, user);
+	}
+	
+	private static void createTopicInRepo(String topic) {
+		topicRepo.addTopic(topic);
+		topicRepo.addTopicSubscribe(topic);
+		topicRepo.addTopicPublish(topic);
+	}
+	
+	private static void checkTopicSubscribersAndSend(String topic) {
+		ArrayList<SubscribeUser> users = topicRepo.getTopicSubscribersRepo().get(topic);
+		System.out.println(">Subscribers for " + topic);
+		System.out.println(users);
 	}
 }

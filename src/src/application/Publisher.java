@@ -33,7 +33,7 @@ public class Publisher {
 		Scanner in = new Scanner(System.in);
 		
 		while(true) {
-			System.out.println("Commands:\n1- list topics\n2- publish");
+			System.out.println("Comandos:\n1- Listar Localizações\n2- Publicar medição de temperatura");
 			
 			int num = in.nextInt();
 			
@@ -48,11 +48,11 @@ public class Publisher {
 				}
 				
 			} else if(num==2) {
-				System.out.println("Type topic:");
+				System.out.println("Digite a localização da medição:");
 				in.nextLine();
 				String topic = in.nextLine();
 				Date date = new Date(System.currentTimeMillis());
-				System.out.println("Type temperature:");
+				System.out.println("Digite a temperatura:");
 				double temp = in.nextDouble();
 				MessageBody body = new MessageBody(topic, date, temp);
 				MessageHeader header = new MessageHeader();
