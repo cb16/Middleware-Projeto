@@ -11,33 +11,47 @@ public class ServerSocketThread extends Thread {
 	private Socket socket;
 	private int id;
 	
-	QueueManager qm;
-	
 	int sentMessageSize;
 	int receivedMessageSize;
 	DataOutputStream outToClient = null;
 	DataInputStream inFromClient = null;
 	
 	byte[] messageToSend;
+	byte[] receivedMessageBytes;
 	
-	byte[] receivedMessage;
+	Message receivedMessage;
 	
 	volatile boolean keepRunning;
+
+	Operation operation;
 	
 	Marshaller marshaller;
 	
 	public ServerSocketThread(int id, Socket socket) {
 		this.socket = socket;
 		this.receivedMessage = null;
+		this.receivedMessageBytes = null;
 		this.id = id;
 		this.marshaller = new Marshaller();
-		this.qm = new QueueManager("localhost", Config.port);
 		keepRunning = true;
 		messageToSend = null;
+		operation = null;
 	}
 	
-	public byte[] getReceivedMessage() {
+	public byte[] getReceivedMessageBytes() {
+		return this.receivedMessageBytes;
+	}
+	
+	public Message getReceivedMessage() {
 		return this.receivedMessage;
+	}
+	
+	public void setReceivedMessage(Message message) {
+		this.receivedMessage = message;
+	}
+	
+	public Operation getOperation() {
+		return operation;
 	}
 	
 	public void run() {
@@ -46,34 +60,23 @@ public class ServerSocketThread extends Thread {
 			outToClient = new DataOutputStream(socket.getOutputStream());
 			
 			receivedMessageSize = inFromClient.readInt();
-			receivedMessage = new byte[receivedMessageSize];
-			inFromClient.read(receivedMessage, 0, receivedMessageSize);
+			receivedMessageBytes = new byte[receivedMessageSize];
+			inFromClient.read(receivedMessageBytes, 0, receivedMessageSize);
 			
-			RequestPacket requestPacket = marshaller.unmarshallRequestPacket(receivedMessage);
+			RequestPacket requestPacket = marshaller.unmarshallRequestPacket(receivedMessageBytes);
 			
-			Operation operation = (Operation) requestPacket.getHeader().getOperation();
+			this.operation = (Operation) requestPacket.getHeader().getOperation();
 			Message message = requestPacket.getBody().getMessage();
+			System.out.println("THREAD message > " + message);
+			setReceivedMessage(message);
 			
-			System.out.println("IN OPERATION");
-			
-			switch(operation) {
-				case LIST:
-					qm.queues.get("list").enqueue(message);
-					break;
-				case PUBLISH:
-					System.out.println("adding");
-					Queue q= qm.queues.get("publish");
-					q.enqueue(message);
-					qm.queues.put("publish", q);
-					break;
-				case SUBSCRIBE:
-					qm.queues.get("subscribe").enqueue(message);
-					break;
-			}
+			System.out.println("THREAD IN OPERATION");
 			
 			while(keepRunning) {
 				if(messageToSend != null) {
 					//send
+					
+					System.out.println("THREAD will send");
 					
 					sentMessageSize = messageToSend.length;
 					outToClient.writeInt(sentMessageSize);
@@ -104,5 +107,9 @@ public class ServerSocketThread extends Thread {
 	
 	public void setSendMessage(byte[] bytesMessage) {
 		messageToSend = bytesMessage;
+	}
+	
+	public int getThreadId() {
+		return this.id;
 	}
 }

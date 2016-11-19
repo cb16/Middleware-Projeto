@@ -15,7 +15,7 @@ public class QueueManager extends Thread implements IQueueManager {
 	public static Map<String, Queue> queues;
 	private ServerRequestHandler requestHandler;
 	private Marshaller marshaller;
-	private ArrayList<ServerSocketThread> connections;
+	private HashMap<Integer, ServerSocketThread> connections;
 	
 	public QueueManager(String host, int port) {
 		this.host = host;
@@ -24,6 +24,7 @@ public class QueueManager extends Thread implements IQueueManager {
 		instantiateQueues();
 		this.requestHandler = new ServerRequestHandler(this.port);
 		this.marshaller = new Marshaller();
+		this.connections = new HashMap<Integer, ServerSocketThread>();
 	}
 	
 	public void instantiateQueues() {
@@ -34,30 +35,45 @@ public class QueueManager extends Thread implements IQueueManager {
 										//subscribers (principalmente) e publishers
 	}
 	
-	public void enqueueSendMessage(Message message) {
-		Queue q = queues.get("send");
-		System.out.println("antes");
-		System.out.println(q.queue);
-		queues.get("send").enqueue(message);
-		q = queues.get("send");
-		System.out.println("after");
-		System.out.println(q.queue);
+	public void enqueueSendMessage(ConnectionMessage conMessage) {
+		queues.get("send").enqueue(conMessage);
 	}
 
-	public void send(Message message) throws IOException {
-		
-		int connectionId = message.getBody().getConnectionId();
-		
+	public void send(int conId, Message message) throws IOException {
+		System.out.println("QUEUE MANAGER send with connection " + conId);
 		byte[] bytes = marshaller.marshallMessage(message);
 		
-		requestHandler.send(bytes);
+		connections.get(conId).setSendMessage(bytes);
 		
 	}
 
 	public void receive() throws IOException, ClassNotFoundException {
+		ServerSocketThread thread = requestHandler.receive();
+		connections.put(thread.getThreadId(), thread);
 		
-		connections.add(requestHandler.receive());
+		connections.get(thread.getThreadId()).start();
 		
+		System.out.println("QUEUE MANAGER - waiting for operation and message received");
+		
+		while(thread.getOperation() == null);
+		Operation operation = thread.getOperation();
+		if(operation != Operation.LIST)
+			while(thread.getReceivedMessage() == null);
+		
+		switch(operation) {
+			case LIST:
+				System.out.println("QUEUE MANAGER - adding list connection");
+				queues.get("list").enqueue(new ConnectionMessage(thread.getThreadId(), null));
+				break;
+			case PUBLISH:
+				System.out.println("QUEUE MANAGER - adding publish connection");
+				queues.get("publish").enqueue(new ConnectionMessage(thread.getThreadId(), thread.getReceivedMessage()));
+				break;
+			case SUBSCRIBE:
+				System.out.println("QUEUE MANAGER - adding subscribe connection");
+				queues.get("subscribe").enqueue(new ConnectionMessage(thread.getThreadId(), thread.getReceivedMessage()));
+				break;
+		}
 	}
 	
 	public void run() {

@@ -34,13 +34,13 @@ public class ClientRequestHandler {
 		outToServer.write(message, 0, sentMessageSize);
 		outToServer.flush();
 		
-		if(!isExpectedReply()) {
+		/*if(!isExpectedReply()) {
 			System.out.println("closed");
 			clientSocket.close();
 			outToServer.close();
 			inFromServer.close();
 			return;
-		}
+		}*/
 	}
 	
 	public byte[] receive() throws IOException {
@@ -49,7 +49,7 @@ public class ClientRequestHandler {
 		receivedMessageSize = inFromServer.readInt();
 		message = new byte[receivedMessageSize];
 		inFromServer.read(message, 0, receivedMessageSize);
-		
+		System.out.println("client received something");
 		clientSocket.close();
 		outToServer.close();
 		inFromServer.close();
