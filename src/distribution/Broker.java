@@ -28,33 +28,38 @@ public class Broker extends Thread {
 	
 	public void run() {
 		Message message;
+		ConnectionMessage conMessage;
 		
 		while(true) {
 			
 			if(queueManager.queues.get("list").queueSize() > 0) {
-				message = queueManager.queues.get("list").dequeue();
+				conMessage = queueManager.queues.get("list").dequeue();
+				message = conMessage.getMessage();
 				System.out.println("broker received list request");
 				Message sendMessage = formatListingMessage();
-				queueManager.queues.get("send").enqueue(sendMessage);
+				queueManager.queues.get("send").enqueue(new ConnectionMessage(conMessage.getConnectionId(), sendMessage));
 			}
 			
 			if(queueManager.queues.get("publish").queueSize() > 0) {
-				message = queueManager.queues.get("publish").dequeue();
+				conMessage = queueManager.queues.get("publish").dequeue();
+				message = conMessage.getMessage();
 				System.out.println("broker received publish message");
-				repoPublish(message);
+				repoPublish(conMessage.getConnectionId(), message);
 			}
 			
 			if(queueManager.queues.get("subscribe").queueSize() > 0) {
-				message = queueManager.queues.get("subscribe").dequeue();
+				conMessage = queueManager.queues.get("subscribe").dequeue();
+				message = conMessage.getMessage();
 				System.out.println("broker received subscribe message");
 				repoSubscribe(message);
 			}
 			
 			if(queueManager.queues.get("send").queueSize() > 0) {
-				message = queueManager.queues.get("send").dequeue();
-				System.out.println("broker sending response message");
+				conMessage = queueManager.queues.get("send").dequeue();
+				message = conMessage.getMessage();
+				System.out.println("broker enqueuing send response message");
 				try {
-					queueManager.send(message);
+					queueManager.send(conMessage.getConnectionId(), message);
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -76,7 +81,7 @@ public class Broker extends Thread {
 		return message;
 	}
 	
-	private static void repoPublish(Message message) {
+	private static void repoPublish(int conId, Message message) {
 		String topic = message.getBody().getLocation();
 		
 		if(!topicRepo.getTopics().contains(topic))
@@ -84,7 +89,7 @@ public class Broker extends Thread {
 		
 		topicRepo.addPublication(topic, message);
 		
-		checkTopicSubscribersAndSend(topic);
+		checkTopicSubscribersAndSend(topic, message, conId);
 	}
 	
 	private static void repoSubscribe(Message message) {
@@ -104,9 +109,13 @@ public class Broker extends Thread {
 		topicRepo.addTopicPublish(topic);
 	}
 	
-	private static void checkTopicSubscribersAndSend(String topic) {
+	private static void checkTopicSubscribersAndSend(String topic, Message message, int conId) {
 		ArrayList<SubscribeUser> users = topicRepo.getTopicSubscribersRepo().get(topic);
 		System.out.println(">Subscribers for " + topic);
 		System.out.println(users);
+		
+		for(SubscribeUser user : users) {
+			queueManager.enqueueSendMessage(new ConnectionMessage(conId, message));
+		}
 	}
 }
