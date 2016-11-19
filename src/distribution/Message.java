@@ -8,11 +8,15 @@ public class Message{
 	private MessageOptionalHeader optionalHeader;
 	private Payload payload;
 	
+	public Message(MessageHeader header){
+		this.header = header;
+	}
+	
 	public ArrayList<Byte> toBytes(){
 		ArrayList<Byte> encoded = new ArrayList<>();
 		
 		encoded.addAll(header.toBytes());
-		encoded.addAll(optionalHeader.toBytes());
+		encoded.addAll(optionalHeader.getContent());
 		encoded.addAll(payload.getContent());
 		
 		return encoded;
@@ -40,9 +44,5 @@ public class Message{
 
 	public void setPayload(Payload payload) {
 		this.payload = payload;
-	}
-
-	public Message(MessageHeader header) {
-		this.header = header;
 	}
 }

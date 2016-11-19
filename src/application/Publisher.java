@@ -8,11 +8,14 @@ import java.util.Scanner;
 
 import distribution.Message;
 import distribution.MessageHeader;
+import distribution.MessageOptionalHeader;
 import distribution.Operation;
+import distribution.Payload;
 import distribution.QueueManagerProxy;
 
 public class Publisher {
 	private static QueueManagerProxy publishQueueManagerProxy = new QueueManagerProxy("publish");
+	private static Scanner in;
 	
 	public static void publish(Message message) throws UnknownHostException, IOException {
 		publishQueueManagerProxy.send(message, Operation.PUBLISH);
@@ -29,7 +32,7 @@ public class Publisher {
 	}
 	
 	public static void main(String[] args) throws UnknownHostException, ClassNotFoundException, IOException {
-		Scanner in = new Scanner(System.in);
+		in = new Scanner(System.in);
 		
 		while(true) {
 			System.out.println("Comandos:\n1- Listar Localizações\n2- Publicar medição de temperatura");
@@ -52,15 +55,26 @@ public class Publisher {
 				in.nextLine();
 				String topic = in.nextLine();
 				
+				
 				Date date = new Date(System.currentTimeMillis());
 				
 				System.out.println("Digite a temperatura:");
 				double temp = in.nextDouble();
 				
-				MessageBody body = new MessageBody(topic, date, temp);
-				MessageHeader header = new MessageHeader();
+				Payload payload = new Payload();
+				payload.addField(date.toString());
+				payload.addField(Double.toString(temp));
 				
-				Message message = new Message(header, body);
+				MessageOptionalHeader optionalHeader = new MessageOptionalHeader();
+				optionalHeader.addField(topic);
+				optionalHeader.addField("1"); // ID
+				int headerLength = payload.length() + optionalHeader.length();
+				MessageHeader header = new MessageHeader(Operation.PUBLISH, headerLength);
+				
+				Message message = new Message(header);
+				message.setOptionalHeader(optionalHeader);
+				message.setPayload(payload);
+				
 				publish(message);
 			}
 		}

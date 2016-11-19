@@ -10,6 +10,7 @@ import infrastructure.ServerRequestHandler;
 public class Broker extends Thread {
 	private static TopicRepository topicRepo;
 	private static QueueManager queueManager;
+	private static String listDelimiter = "\r\n";
 	
 	public static void main(String[] args) throws ClassNotFoundException, IOException {
 		
@@ -70,13 +71,15 @@ public class Broker extends Thread {
 	}
 	
 	private static Message formatListingMessage() {
-		MessageHeader header = new MessageHeader();
-		
 		ArrayList<String> topics = topicRepo.getTopics();
+		Payload payload = null;
 		
-		MessageBody body = new MessageBody(topics);
+		payload.addField(String.join(listDelimiter, topics));
 		
-		Message message = new Message(header, body);
+		MessageHeader header = new MessageHeader(Operation.LIST, payload.length());
+		
+		Message message = new Message(header);
+		message.setPayload(payload);
 		
 		return message;
 	}

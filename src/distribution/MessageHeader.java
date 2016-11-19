@@ -1,10 +1,19 @@
 package distribution;
 
 import java.util.ArrayList;
+import distribution.Operation;
 
 public class MessageHeader {
 	private Byte mqttControlPacketType;
 	private int remainingLength;
+	
+	public MessageHeader(Operation op, int remainingLength){
+		if(op == Operation.PUBLISH){
+			mqttControlPacketType = 3 << 4; // 0011 in the 4 least significant bits
+		}
+		
+		this.remainingLength = remainingLength;
+	}
 	
 	public ArrayList<Byte> toBytes(){
 		ArrayList<Byte> encoded = new ArrayList<Byte>();
@@ -51,8 +60,8 @@ public class MessageHeader {
 			length += power*(encodedByte%128);
 			power *= 128;
 			i++;
-		}while(encodedByte/128 > 0);
-		
+		} while (encodedByte / 128 > 0);
+
 		return length;
 	}
 }
