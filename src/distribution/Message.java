@@ -6,14 +6,14 @@ import java.util.ArrayList;
 public class Message{
 	private MessageHeader header;
 	private MessageOptionalHeader optionalHeader;
-	private ArrayList<Byte> payload;
+	private Payload payload;
 	
 	public ArrayList<Byte> toBytes(){
 		ArrayList<Byte> encoded = new ArrayList<>();
 		
 		encoded.addAll(header.toBytes());
 		encoded.addAll(optionalHeader.toBytes());
-		encoded.addAll(payload);
+		encoded.addAll(payload.getContent());
 		
 		return encoded;
 	}
@@ -34,11 +34,11 @@ public class Message{
 		this.optionalHeader = optionalHeader;
 	}
 
-	public ArrayList<Byte> getPayload() {
+	public Payload getPayload() {
 		return payload;
 	}
 
-	public void setPayload(ArrayList<Byte> payload) {
+	public void setPayload(Payload payload) {
 		this.payload = payload;
 	}
 
