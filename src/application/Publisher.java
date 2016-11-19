@@ -7,7 +7,6 @@ import java.util.Date;
 import java.util.Scanner;
 
 import distribution.Message;
-import distribution.MessageBody;
 import distribution.MessageHeader;
 import distribution.Operation;
 import distribution.QueueManagerProxy;
@@ -49,11 +48,15 @@ public class Publisher {
 				
 			} else if(num==2) {
 				System.out.println("Digite a localização da medição:");
+				
 				in.nextLine();
 				String topic = in.nextLine();
+				
 				Date date = new Date(System.currentTimeMillis());
+				
 				System.out.println("Digite a temperatura:");
 				double temp = in.nextDouble();
+				
 				MessageBody body = new MessageBody(topic, date, temp);
 				MessageHeader header = new MessageHeader();
 				

@@ -3,17 +3,17 @@ package distribution;
 import java.util.ArrayList;
 
 public class Queue {
-	private ArrayList<Message> queue;
+	public ArrayList<ConnectionMessage> queue;
 	
 	public Queue() {
-		this.queue = new ArrayList<Message>();
+		this.queue = new ArrayList<ConnectionMessage>();
 	}
 	
-	public void enqueue(Message message) {
-		this.queue.add(message);
+	public void enqueue(ConnectionMessage conMessage) {
+		this.queue.add(conMessage);
 	}
 	
-	public Message dequeue() {
+	public ConnectionMessage dequeue() {
 		if(!this.queue.isEmpty())
 			return this.queue.remove(0);
 		return null;

@@ -12,7 +12,7 @@ import distribution.MessageHeader;
 import distribution.Operation;
 import distribution.QueueManagerProxy;
 
-public class Subscriber {
+public class Subscriber extends Thread {
 	static QueueManagerProxy subscribeQueueManagerProxy = new QueueManagerProxy("subscribe");
 	
 	public static void subscribe(String topic) throws UnknownHostException, IOException {
@@ -33,6 +33,10 @@ public class Subscriber {
 		ArrayList<String> topicList = listMessage.getBody().getList();
 		
 		return topicList;
+	}
+	
+	public static Message receive() throws ClassNotFoundException, IOException {
+		return subscribeQueueManagerProxy.receive(false);
 	}
 	
 	public static void main(String[] args) throws UnknownHostException, ClassNotFoundException, IOException {
@@ -58,6 +62,17 @@ public class Subscriber {
 				in.nextLine();
 				String topic = in.nextLine();
 				subscribe(topic);
+			}
+		}
+	}
+	
+	public void run() {
+		while(true) {
+			try {
+				receive();
+			} catch (ClassNotFoundException | IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
 	}
