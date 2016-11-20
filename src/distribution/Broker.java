@@ -72,7 +72,7 @@ public class Broker extends Thread {
 	
 	private static Message formatListingMessage() {
 		ArrayList<String> topics = topicRepo.getTopics();
-		Payload payload = null;
+		Payload payload = new Payload();
 		
 		payload.addField(String.join(listDelimiter, topics));
 		
@@ -96,7 +96,8 @@ public class Broker extends Thread {
 	}
 	
 	private static void repoSubscribe(Message message) {
-		String topic = message.getBody().getTopic();
+		ArrayList<String> fields = message.getPayload().getFields();
+		String topic = fields.get(0);
 		
 		SubscribeUser user = new SubscribeUser(message.getBody().getIP(), Config.port);
 		
