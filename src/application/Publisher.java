@@ -10,7 +10,7 @@ import distribution.Message;
 import distribution.MessageHeader;
 import distribution.MessageOptionalHeader;
 import distribution.Operation;
-import distribution.Payload;
+import distribution.MessagePayload;
 import distribution.QueueManagerProxy;
 
 public class Publisher {
@@ -61,7 +61,7 @@ public class Publisher {
 				System.out.println("Digite a temperatura:");
 				double temp = in.nextDouble();
 				
-				Payload payload = new Payload();
+				MessagePayload payload = new MessagePayload();
 				payload.addField(date.toString());
 				payload.addField(Double.toString(temp));
 				

@@ -3,7 +3,7 @@ package distribution;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class Payload {
+public class MessagePayload {
 	private ArrayList<Byte> content = new ArrayList<>();
 	private String listDelimiter = "\r\n";
 	

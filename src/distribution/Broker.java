@@ -72,7 +72,7 @@ public class Broker extends Thread {
 	
 	private static Message formatListingMessage() {
 		ArrayList<String> topics = topicRepo.getTopics();
-		Payload payload = new Payload();
+		MessagePayload payload = new MessagePayload();
 		
 		payload.addField(String.join(listDelimiter, topics));
 		

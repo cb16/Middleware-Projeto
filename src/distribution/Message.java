@@ -6,7 +6,7 @@ import java.util.ArrayList;
 public class Message{
 	private MessageHeader header;
 	private MessageOptionalHeader optionalHeader;
-	private Payload payload;
+	private MessagePayload payload;
 	
 	public Message(MessageHeader header){
 		this.header = header;
@@ -38,11 +38,11 @@ public class Message{
 		this.optionalHeader = optionalHeader;
 	}
 
-	public Payload getPayload() {
+	public MessagePayload getPayload() {
 		return payload;
 	}
 
-	public void setPayload(Payload payload) {
+	public void setPayload(MessagePayload payload) {
 		this.payload = payload;
 	}
 }

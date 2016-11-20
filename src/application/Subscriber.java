@@ -9,7 +9,7 @@ import distribution.Message;
 import distribution.MessageHeader;
 import distribution.MessageOptionalHeader;
 import distribution.Operation;
-import distribution.Payload;
+import distribution.MessagePayload;
 import distribution.QueueManagerProxy;
 
 public class Subscriber extends Thread {
@@ -18,7 +18,7 @@ public class Subscriber extends Thread {
 	
 	public static void subscribe(String topic) throws UnknownHostException, IOException {
 		//formating message
-		Payload payload = new Payload();
+		MessagePayload payload = new MessagePayload();
 		payload.addField(topic);
 		MessageOptionalHeader optionalHeader = new MessageOptionalHeader();
 		optionalHeader.addField("0"); // ID
