@@ -1,25 +1,33 @@
 package application;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
 import distribution.Message;
-import distribution.MessageBody;
 import distribution.MessageHeader;
+import distribution.MessageOptionalHeader;
 import distribution.Operation;
+import distribution.Payload;
 import distribution.QueueManagerProxy;
 
 public class Subscriber extends Thread {
 	static QueueManagerProxy subscribeQueueManagerProxy = new QueueManagerProxy("subscribe");
+	private static Scanner in;
 	
 	public static void subscribe(String topic) throws UnknownHostException, IOException {
 		//formating message
-		MessageHeader header = new MessageHeader();
-		MessageBody body = new MessageBody(topic, InetAddress.getLocalHost());
-		Message message = new Message(header, body);
+		Payload payload = new Payload();
+		payload.addField(topic);
+		MessageOptionalHeader optionalHeader = new MessageOptionalHeader();
+		optionalHeader.addField("0"); // ID
+		int length = payload.length() + optionalHeader.length();
+		MessageHeader header = new MessageHeader(Operation.SUBSCRIBE, length);
+		
+		Message message = new Message(header);
+		message.setOptionalHeader(optionalHeader);
+		message.setPayload(payload);
 		
 		//sending message
 		subscribeQueueManagerProxy.send(message, Operation.SUBSCRIBE);
@@ -30,7 +38,7 @@ public class Subscriber extends Thread {
 		
 		Message listMessage = subscribeQueueManagerProxy.receive(true);
 		
-		ArrayList<String> topicList = listMessage.getBody().getList();
+		ArrayList<String> topicList = listMessage.getPayload().getList();
 		
 		return topicList;
 	}
@@ -40,7 +48,7 @@ public class Subscriber extends Thread {
 	}
 	
 	public static void main(String[] args) throws UnknownHostException, ClassNotFoundException, IOException {
-		Scanner in = new Scanner(System.in);
+		in = new Scanner(System.in);
 		
 		while(true) {
 			System.out.println("Comandos:\n1- Listar localizações\n2- Subscribe");
