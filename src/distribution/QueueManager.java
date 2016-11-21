@@ -15,7 +15,7 @@ public class QueueManager extends Thread implements IQueueManager {
 	private int port;
 	public static Map<String, Queue> queues;
 	private ServerRequestHandler requestHandler;
-	private HashMap<Integer, ServerSocketThread> connections;
+	protected static volatile HashMap<Integer, ServerSocketThread> connections;
 	private int idCounter;
 	
 	public QueueManager(String host, int port) {
@@ -129,6 +129,11 @@ public class QueueManager extends Thread implements IQueueManager {
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	public void deleteConnection(int conId) {
+		System.out.println("removing connection " + conId);
+		connections.remove(conId);
 	}
 
 	public void sendPublicationToSubscribers(Message message, ArrayList<SubscribeUser> users) {

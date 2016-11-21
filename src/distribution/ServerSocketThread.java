@@ -2,6 +2,7 @@ package distribution;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -61,7 +62,7 @@ public class ServerSocketThread extends Thread {
 	}
 	
 	public void run() {
-		while(true) {
+		while(keepRunning) {
 			receive();
 		}
 	}
@@ -87,6 +88,8 @@ public class ServerSocketThread extends Thread {
 				setReceivedMessage(message);
 			}
 			
+		} catch (EOFException e) {
+			stopRunning();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -115,6 +118,8 @@ public class ServerSocketThread extends Thread {
 	}
 	
 	public void stopRunning() {
+		System.out.println("BROKER - Connection " + this.id + " has been terminated");
+		
 		keepRunning = false;
 		try {
 			socket.close();
@@ -124,6 +129,8 @@ public class ServerSocketThread extends Thread {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		QueueManager.connections.remove(this.id);
 		
 	}
 	
