@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import utils.Config;
-import infrastructure.ServerRequestHandler;
 
 public class Broker extends Thread {
 	private static TopicRepository topicRepo;
@@ -109,7 +108,8 @@ public class Broker extends Thread {
 	}
 	
 	private static void repoPublish(int conId, Message message) {
-		ArrayList<String> fields = message.getPayload().getFields();
+		ArrayList<String> fields = message.getOptionalHeader().getFields();
+		System.out.println(fields);
 		String topic = fields.get(0);
 		
 		if(!topicRepo.getTopics().contains(topic))
@@ -130,11 +130,12 @@ public class Broker extends Thread {
 			
 			SubscribeUser user = userRepo.get(IPAdress);
 			
-			if(!topicRepo.getTopics().contains(topic))
-				createTopicInRepo(topic);
-			
-			topicRepo.addSubscriber(topic, user);
-			
+			if(user != null){
+				if(!topicRepo.getTopics().contains(topic))
+					createTopicInRepo(topic);
+				
+				topicRepo.addSubscriber(topic, user);
+			}
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

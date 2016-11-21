@@ -16,6 +16,23 @@ public class Subscriber extends Thread {
 	static QueueManagerProxy subscribeQueueManagerProxy = new QueueManagerProxy("subscribe");
 	private static Scanner in;
 	
+	private static void connect(){
+		MessagePayload payload = new MessagePayload();
+		payload.addField("MQTT");
+
+		MessageHeader header = new MessageHeader(Operation.CONNECT, payload.length());
+		
+		Message message = new Message(header);
+		message.setPayload(payload);
+		
+		try {
+			subscribeQueueManagerProxy.send(message, Operation.CONNECT);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	public static void subscribe(String topic) throws UnknownHostException, IOException {
 		//formating message
 		MessagePayload payload = new MessagePayload();
@@ -49,6 +66,8 @@ public class Subscriber extends Thread {
 	
 	public static void main(String[] args) throws UnknownHostException, ClassNotFoundException, IOException {
 		in = new Scanner(System.in);
+		
+		connect();
 		
 		while(true) {
 			System.out.println("Comandos:\n1- Listar localizações\n2- Subscribe");

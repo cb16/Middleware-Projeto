@@ -5,11 +5,36 @@ import java.util.ArrayList;
 
 public class Message{
 	private MessageHeader header;
-	private MessageOptionalHeader optionalHeader;
-	private MessagePayload payload;
+	private MessageOptionalHeader optionalHeader = new MessageOptionalHeader();
+	private MessagePayload payload = new MessagePayload();
 	
 	public Message(MessageHeader header){
 		this.header = header;
+	}
+	
+	public Message(byte[] content){
+		ArrayList<Byte> list = new ArrayList<>();
+		int fromIndexPayload = 2;
+		
+		for(byte b : content){
+			list.add(b);
+		}
+		
+		header = new MessageHeader(list);
+		/*for(Byte b: list){
+			System.out.print(Byte.toUnsignedInt(b));
+			System.out.print(" ");
+		}
+		/*System.out.println("");
+		System.out.print("Header Length: ");
+		System.out.println(header.getRemainingLength());*/
+		if(header.getOperation() == Operation.PUBLISH || header.getOperation() == Operation.SUBSCRIBE){
+			optionalHeader = new MessageOptionalHeader(list.subList(list.size() - header.getRemainingLength(), list.size()), header.getOperation());
+			fromIndexPayload += optionalHeader.length();
+		}
+		
+		ArrayList<Byte> payloadContent = new ArrayList<Byte>(list.subList(fromIndexPayload, list.size()));
+		payload.setContent(payloadContent);
 	}
 	
 	public ArrayList<Byte> toBytes(){
@@ -20,6 +45,17 @@ public class Message{
 		encoded.addAll(payload.getContent());
 		
 		return encoded;
+	}
+	
+	public byte[] toByteArray(){
+		ArrayList<Byte> encoded = toBytes();
+		byte[] result = new byte[encoded.size()];
+		
+		for(int i = 0; i < encoded.size(); ++i){
+			result[i] = encoded.get(i).byteValue();
+		}
+		
+		return result;
 	}
 	
 	public MessageHeader getHeader() {

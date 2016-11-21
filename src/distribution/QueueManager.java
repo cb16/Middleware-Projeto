@@ -7,8 +7,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import utils.Config;
-
 public class QueueManager extends Thread implements IQueueManager {
 	private String host;
 	private int port;
@@ -19,7 +17,7 @@ public class QueueManager extends Thread implements IQueueManager {
 	public QueueManager(String host, int port) {
 		this.host = host;
 		this.port = port;
-		this.queues = new HashMap<String, Queue>();
+		QueueManager.queues = new HashMap<String, Queue>();
 		instantiateQueues();
 		this.requestHandler = new ServerRequestHandler(this.port);
 		this.connections = new HashMap<Integer, ServerSocketThread>();
@@ -46,7 +44,7 @@ public class QueueManager extends Thread implements IQueueManager {
 	    final int n = in.size();
 	    byte ret[] = new byte[n];
 	    for (int i = 0; i < n; i++) {
-	        ret[i] = in.get(i);
+	        ret[i] = in.get(i).byteValue();
 	    }
 	    return ret;
 	}
@@ -89,9 +87,11 @@ public class QueueManager extends Thread implements IQueueManager {
 			case SUBSCRIBE:
 				System.out.println("QUEUE MANAGER - adding subscribe connection");
 				message = thread.getReceivedMessage();
-				message.getPayload().addField(thread.getSocket().getInetAddress().toString());
+				message.getPayload().addField(thread.getSocket().getInetAddress().getHostAddress());
 				queues.get("subscribe").enqueue(new ConnectionMessage(thread.getThreadId(), thread.getReceivedMessage()));
 				break;
+		default:
+			break;
 		}
 	}
 	

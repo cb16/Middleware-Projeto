@@ -23,8 +23,6 @@ public class ServerSocketThread extends Thread {
 
 	Operation operation;
 	
-	Marshaller marshaller;
-	
 	public ServerSocketThread(int id, Socket socket) {
 		this.socket = socket;
 		this.receivedMessage = null;
@@ -60,10 +58,9 @@ public class ServerSocketThread extends Thread {
 			receivedMessageBytes = new byte[receivedMessageSize];
 			inFromClient.read(receivedMessageBytes, 0, receivedMessageSize);
 			
-			RequestPacket requestPacket = marshaller.unmarshallRequestPacket(receivedMessageBytes);
+			Message message = new Message(receivedMessageBytes);
 			
-			this.operation = (Operation) requestPacket.getHeader().getOperation();
-			Message message = requestPacket.getBody().getMessage();
+			this.operation = message.getHeader().getOperation();
 			System.out.println("THREAD message > " + message);
 			setReceivedMessage(message);
 			
@@ -89,9 +86,6 @@ public class ServerSocketThread extends Thread {
 			
 			
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
