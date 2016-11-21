@@ -15,7 +15,6 @@ public class QueueManagerProxy {
 	}
 	
 	public void send(Message message, Enum operation) throws UnknownHostException, IOException {
-		RequestPacket requestPacket;
 		
 		//Configuração do pacote
 		if(operation == Operation.LIST || operation == Operation.CONNECT) {
