@@ -1,6 +1,7 @@
 package application;
 
 import java.io.IOException;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -56,6 +57,11 @@ public class Publisher {
 		connect();
 		
 		while(true) {
+			if(publishQueueManagerProxy.getRequestHandler().getSocket().isClosed()) {
+				System.out.println("Server has fallen!");
+				break;
+			}
+			
 			System.out.println("Comandos:\n1- Listar Localizações\n2- Publicar medição de temperatura");
 			
 			int num = in.nextInt();
@@ -94,7 +100,13 @@ public class Publisher {
 				message.setOptionalHeader(optionalHeader);
 				message.setPayload(payload);
 				
-				publish(message);
+				try {
+					publish(message);
+				} catch(SocketException e) {
+					System.out.println("Server has fallen!");
+					publishQueueManagerProxy.closeConnection();
+				}
+					
 			}
 		}
 	}

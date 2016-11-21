@@ -16,9 +16,11 @@ public class Subscriber extends Thread {
 	QueueManagerProxy subscribeQueueManagerProxy = new QueueManagerProxy("subscribe");
 	boolean sentMessage;
 	ArrayList<Message> receivedMessages;
+	boolean keepRunning;
 	
 	public Subscriber() {
 		receivedMessages = new ArrayList<Message>();
+		keepRunning = true;
 	}
 	
 	public void connect(){
@@ -70,15 +72,22 @@ public class Subscriber extends Thread {
 		return subscribeQueueManagerProxy.receive();
 	}
 	
+	public void finish() {
+		keepRunning = false;
+	}
+	
 	public void run() {
-		while(true) {
+		while(keepRunning) {
 			try {
 				if(this.sentMessage) {
 					Message mes = receive();
-					if(!mes.getPayload().getFields().isEmpty()) {
+					if(mes != null && !mes.getPayload().getFields().isEmpty()) {
 						System.out.println("MENSAGEM RECEBIDA!");
 						System.out.println("Localização: " + mes.getOptionalHeader().getFields());
 						System.out.println("Dados: " + mes.getPayload().getFields());
+					} else {
+						if(subscribeQueueManagerProxy.getRequestHandler().getSocket().isClosed())
+							finish();
 					}
 				}
 			} catch (ClassNotFoundException | IOException e) {

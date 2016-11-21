@@ -2,6 +2,7 @@ package infrastructure;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -40,11 +41,34 @@ public class ClientRequestHandler {
 	
 	public byte[] receive() throws IOException {
 		byte[] message = null;
+		try {
+			receivedMessageSize = inFromServer.readInt();
+			message = new byte[receivedMessageSize];
+			inFromServer.read(message, 0, receivedMessageSize);
+		} catch (EOFException e) {
+			System.out.println("Server has fallen!");
+			clientSocket.close();
+			inFromServer.close();
+			outToServer.close();
+		}
 		
-		receivedMessageSize = inFromServer.readInt();
-		message = new byte[receivedMessageSize];
-		inFromServer.read(message, 0, receivedMessageSize);
 
 		return message;
+	}
+	
+	public void close() {
+		try {
+			clientSocket.close();
+			inFromServer.close();
+			outToServer.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+	
+	public Socket getSocket() {
+		return clientSocket;
 	}
 }

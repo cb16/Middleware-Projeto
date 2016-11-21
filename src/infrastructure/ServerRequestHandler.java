@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import distribution.ServerSocketThread;
+import distribution.ConnectionHandler;
 
 public class ServerRequestHandler {
 	private int port;

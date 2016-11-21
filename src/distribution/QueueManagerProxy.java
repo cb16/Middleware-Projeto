@@ -15,6 +15,10 @@ public class QueueManagerProxy {
 		this.requestHandler = new ClientRequestHandler("localhost", Config.port);
 	}
 	
+	public void closeConnection() {
+		requestHandler.close();
+	}
+	
 	public void send(Message message, Enum operation) throws UnknownHostException, IOException {
 		//Envio da requisição
 		requestHandler.send(message.toByteArray());
@@ -24,8 +28,15 @@ public class QueueManagerProxy {
 	public Message receive() throws IOException, ClassNotFoundException {
 		byte[] bytes = requestHandler.receive();
 		
-		Message message = new Message(bytes);
+		Message message = null;
+		
+		if(bytes != null)
+			message = new Message(bytes);
 		
 		return message;
+	}
+	
+	public ClientRequestHandler getRequestHandler() {
+		return requestHandler;
 	}
 }

@@ -15,7 +15,7 @@ public class QueueManager extends Thread implements IQueueManager {
 	private int port;
 	public static Map<String, Queue> queues;
 	private ServerRequestHandler requestHandler;
-	protected static volatile HashMap<Integer, ServerSocketThread> connections;
+	protected static volatile HashMap<Integer, ConnectionHandler> connections;
 	private int idCounter;
 	
 	public QueueManager(String host, int port) {
@@ -24,7 +24,7 @@ public class QueueManager extends Thread implements IQueueManager {
 		QueueManager.queues = new HashMap<String, Queue>();
 		instantiateQueues();
 		this.requestHandler = new ServerRequestHandler(this.port);
-		this.connections = new HashMap<Integer, ServerSocketThread>();
+		this.connections = new HashMap<Integer, ConnectionHandler>();
 		this.idCounter = 0;
 	}
 	
@@ -42,7 +42,7 @@ public class QueueManager extends Thread implements IQueueManager {
 		queues.get("send").enqueue(conMessage);
 	}
 	
-	public ServerSocketThread getConnection(int conId){
+	public ConnectionHandler getConnection(int conId){
 		return connections.get(conId); 
 	}
 	
@@ -67,11 +67,11 @@ public class QueueManager extends Thread implements IQueueManager {
 		int id = idCounter;
 		idCounter++;
 		
-		ServerSocketThread thread = new ServerSocketThread(id, socket);
+		ConnectionHandler thread = new ConnectionHandler(id, socket);
 		
 		InetAddress ipAddress = socket.getInetAddress();
 
-		connections.put(id, new ServerSocketThread(thread.getThreadId(), socket));
+		connections.put(id, new ConnectionHandler(thread.getThreadId(), socket));
 		
 		thread = connections.get(id);
 		thread.start();
@@ -146,7 +146,7 @@ public class QueueManager extends Thread implements IQueueManager {
 	
 	public int getUserConId(SubscribeUser user) {
 		for(Integer id : connections.keySet()) {
-			ServerSocketThread thread = connections.get(id);
+			ConnectionHandler thread = connections.get(id);
 			if(thread.getSocket().getInetAddress() == user.getIP()) {
 				return id;
 			}

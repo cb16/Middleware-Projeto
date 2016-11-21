@@ -13,7 +13,6 @@ public class SubscriberRunner {
 		Scanner in = new Scanner(System.in);
 		
 		subscriber.connect();
-		//Message ms = sub.receive();
 		
 		subscriber.sentMessage = true;
 		
@@ -40,7 +39,10 @@ public class SubscriberRunner {
 				in.nextLine();
 				String topic = in.nextLine();
 				try {
-					subscriber.subscribe(topic);
+					if(subscriber.keepRunning)
+						subscriber.subscribe(topic);
+					else
+						System.out.println("Invalid Operation - Server has fallen.");
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

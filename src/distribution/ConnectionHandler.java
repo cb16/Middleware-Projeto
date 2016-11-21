@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
 
-public class ServerSocketThread extends Thread {
+public class ConnectionHandler extends Thread {
 	private Socket socket;
 	private int id;
 	
@@ -25,7 +25,7 @@ public class ServerSocketThread extends Thread {
 
 	Operation operation;
 	
-	public ServerSocketThread(int id, Socket socket) {
+	public ConnectionHandler(int id, Socket socket) {
 		this.socket = socket;
 		this.receivedMessage = null;
 		this.receivedMessageBytes = null;
