@@ -67,7 +67,6 @@ public class ServerSocketThread extends Thread {
 	}
 	
 	public void receive() {
-		System.out.println("in thread receive");
 		try {
 			inFromClient = new DataInputStream(socket.getInputStream());
 			outToClient = new DataOutputStream(socket.getOutputStream());
@@ -78,7 +77,6 @@ public class ServerSocketThread extends Thread {
 		try {
 			
 			receivedMessageSize = inFromClient.readInt();
-			System.out.println("read int");
 			synchronized(this) {
 				receivedMessageBytes = new byte[receivedMessageSize];
 				inFromClient.read(receivedMessageBytes, 0, receivedMessageSize);
@@ -86,8 +84,6 @@ public class ServerSocketThread extends Thread {
 				Message message = new Message(receivedMessageBytes);
 				
 				this.operation = message.getHeader().getOperation();
-				System.out.println("new operation " + this.operation);
-				System.out.println("THREAD message > " + message);
 				setReceivedMessage(message);
 			}
 			
@@ -99,7 +95,7 @@ public class ServerSocketThread extends Thread {
 	}
 	
 	public void send() {
-		System.out.println("THREAD will send");
+		System.out.println("SERVER sending response");
 		
 		sentMessageSize = messageToSend.length;
 		
@@ -112,7 +108,6 @@ public class ServerSocketThread extends Thread {
 			e.printStackTrace();
 		}
 		
-		System.out.println("THREAD sent");
 	}
 	
 	public void setOperation(Operation op) {
@@ -142,7 +137,6 @@ public class ServerSocketThread extends Thread {
 	}
 	
 	public Socket getSocket(){
-		System.out.println("is scoket null ? " + (socket==null? true:false));
 		return socket;
 	}
 }

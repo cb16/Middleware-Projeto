@@ -26,7 +26,7 @@ public class Publisher {
 		Message message = new Message(header);
 		
 		
-		Message listMessage = publishQueueManagerProxy.receive(true);
+		Message listMessage = publishQueueManagerProxy.receive();
 		
 		ArrayList<String> topicList = listMessage.getPayload().getList();
 		

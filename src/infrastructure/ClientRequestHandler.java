@@ -32,7 +32,6 @@ public class ClientRequestHandler {
 	}
 	
 	public synchronized void send(byte[] message) throws UnknownHostException, IOException {
-		System.out.println("message size " + message.length);
 		sentMessageSize = message.length;
 		outToServer.writeInt(sentMessageSize);
 		outToServer.write(message, 0, sentMessageSize);
@@ -45,7 +44,6 @@ public class ClientRequestHandler {
 		receivedMessageSize = inFromServer.readInt();
 		message = new byte[receivedMessageSize];
 		inFromServer.read(message, 0, receivedMessageSize);
-		System.out.println("client received something");
 
 		return message;
 	}

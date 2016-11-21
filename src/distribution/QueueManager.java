@@ -38,6 +38,7 @@ public class QueueManager extends Thread implements IQueueManager {
 	}
 	
 	public void enqueueSendMessage(ConnectionMessage conMessage) {
+		System.out.println("QUEUE MANAGER - enqueuing send message for con id " + conMessage.getConnectionId());
 		queues.get("send").enqueue(conMessage);
 	}
 	
@@ -55,7 +56,6 @@ public class QueueManager extends Thread implements IQueueManager {
 	}
 
 	public void send(int conId, Message message) throws IOException {
-		System.out.println("QUEUE MANAGER send with connection " + conId);
 		byte[] bytes = toByteArray(message.toBytes());
 		
 		connections.get(conId).setSendMessage(bytes);
@@ -76,8 +76,6 @@ public class QueueManager extends Thread implements IQueueManager {
 		thread = connections.get(id);
 		thread.start();
 		
-		System.out.println("QUEUE MANAGER - waiting for operation and message received");
-		
 		while(thread.getOperation() == null);
 		Operation operation = thread.getOperation();
 		
@@ -93,7 +91,6 @@ public class QueueManager extends Thread implements IQueueManager {
 	}
 	
 	public static void addToQueue(Operation operation, int id, InetAddress inetAddress, Message message) {
-		System.out.println("QM - adding " + operation + " message to queue");
 		switch(operation) {
 			case CONNECT:
 				System.out.println("QUEUE MANAGER - adding user connection");
@@ -132,5 +129,23 @@ public class QueueManager extends Thread implements IQueueManager {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	public void sendPublicationToSubscribers(Message message, ArrayList<SubscribeUser> users) {
+		for(SubscribeUser user : users) {
+			int userConId = getUserConId(user);
+			if(userConId != -1)
+				enqueueSendMessage(new ConnectionMessage(userConId, message));
+		}		
+	}
+	
+	public int getUserConId(SubscribeUser user) {
+		for(Integer id : connections.keySet()) {
+			ServerSocketThread thread = connections.get(id);
+			if(thread.getSocket().getInetAddress() == user.getIP()) {
+				return id;
+			}
+		}
+		return -1;
 	}
 }

@@ -32,11 +32,8 @@ public class ServerRequestHandler {
 	}
 	
 	public Socket receive() throws IOException {
-		System.out.println("server waiting for request");
 		
 		connectionSocket = welcomeSocket.accept();
-		//ServerSocketThread connectionThread = new ServerSocketThread(idCounter, connectionSocket);
-		//idCounter++;
 		
 		return connectionSocket;
 	}

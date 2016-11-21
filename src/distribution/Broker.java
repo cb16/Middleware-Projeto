@@ -44,7 +44,7 @@ public class Broker extends Thread {
 				SubscribeUser user = new SubscribeUser(IPAdress, Config.port);
 				userRepo.put(IPAdress, user);
 				
-				System.out.println("broker received connect request");
+				System.out.println("BROKER received connect request");
 				Message sendMessage = formatConnectMessage();
 				QueueManager.queues.get("send").enqueue(new ConnectionMessage(conMessage.getConnectionId(), sendMessage));
 			}
@@ -52,7 +52,7 @@ public class Broker extends Thread {
 			if(QueueManager.queues.get("list").queueSize() > 0) {
 				conMessage = QueueManager.queues.get("list").dequeue();
 				message = conMessage.getMessage();
-				System.out.println("broker received list request");
+				System.out.println("BROKER received list request");
 				Message sendMessage = formatListingMessage();
 				QueueManager.queues.get("send").enqueue(new ConnectionMessage(conMessage.getConnectionId(), sendMessage));
 			}
@@ -60,21 +60,21 @@ public class Broker extends Thread {
 			if(QueueManager.queues.get("publish").queueSize() > 0) {
 				conMessage = QueueManager.queues.get("publish").dequeue();
 				message = conMessage.getMessage();
-				System.out.println("broker received publish message");
+				System.out.println("BROKER received publish message");
 				repoPublish(conMessage.getConnectionId(), message);
 			}
 			
 			if(QueueManager.queues.get("subscribe").queueSize() > 0) {
 				conMessage = QueueManager.queues.get("subscribe").dequeue();
 				message = conMessage.getMessage();
-				System.out.println("broker received subscribe message");
+				System.out.println("BROKER received subscribe message");
 				repoSubscribe(message);
 			}
 			
 			if(QueueManager.queues.get("send").queueSize() > 0) {
 				conMessage = QueueManager.queues.get("send").dequeue();
 				message = conMessage.getMessage();
-				System.out.println("broker enqueuing send response message");
+				System.out.println("BROKER enqueuing send response message");
 				try {
 					queueManager.send(conMessage.getConnectionId(), message);
 				} catch (IOException e) {
@@ -153,8 +153,6 @@ public class Broker extends Thread {
 		System.out.println(">Subscribers for " + topic);
 		System.out.println(users);
 		
-		for(SubscribeUser user : users) {
-			queueManager.enqueueSendMessage(new ConnectionMessage(conId, message));
-		}
+		queueManager.sendPublicationToSubscribers(message, users);
 	}
 }

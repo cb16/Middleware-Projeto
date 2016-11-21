@@ -21,7 +21,7 @@ public class QueueManagerProxy {
 		
 	}
 	
-	public Message receive(boolean waitingResponse) throws IOException, ClassNotFoundException {
+	public Message receive() throws IOException, ClassNotFoundException {
 		byte[] bytes = requestHandler.receive();
 		
 		Message message = new Message(bytes);

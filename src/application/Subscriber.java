@@ -13,10 +13,15 @@ import distribution.MessagePayload;
 import distribution.QueueManagerProxy;
 
 public class Subscriber extends Thread {
-	static QueueManagerProxy subscribeQueueManagerProxy = new QueueManagerProxy("subscribe");
-	private static Scanner in;
+	QueueManagerProxy subscribeQueueManagerProxy = new QueueManagerProxy("subscribe");
+	boolean sentMessage;
+	ArrayList<Message> receivedMessages;
 	
-	private static void connect(){
+	public Subscriber() {
+		receivedMessages = new ArrayList<Message>();
+	}
+	
+	public void connect(){
 		MessagePayload payload = new MessagePayload();
 		payload.addField("MQTT");
 
@@ -33,7 +38,7 @@ public class Subscriber extends Thread {
 		}
 	}
 	
-	public static void subscribe(String topic) throws UnknownHostException, IOException {
+	public void subscribe(String topic) throws UnknownHostException, IOException {
 		//formating message
 		MessagePayload payload = new MessagePayload();
 		payload.addField(topic);
@@ -45,65 +50,37 @@ public class Subscriber extends Thread {
 		Message message = new Message(header);
 		message.setOptionalHeader(optionalHeader);
 		message.setPayload(payload);
-		System.out.println("calling send");
+		
 		//sending message
 		subscribeQueueManagerProxy.send(message, Operation.SUBSCRIBE);
+		//sentMessage = true;
 	}
 	
-	public static ArrayList<String> list() throws UnknownHostException, IOException, ClassNotFoundException {
+	public ArrayList<String> list() throws UnknownHostException, IOException, ClassNotFoundException {
 		subscribeQueueManagerProxy.send(null, Operation.LIST);
 		
-		Message listMessage = subscribeQueueManagerProxy.receive(true);
+		Message listMessage = subscribeQueueManagerProxy.receive();
 		
 		ArrayList<String> topicList = listMessage.getPayload().getList();
 		
 		return topicList;
 	}
 	
-	public static Message receive() throws ClassNotFoundException, IOException {
-		return subscribeQueueManagerProxy.receive(false);
-	}
-	
-	public static void main(String[] args) throws UnknownHostException, ClassNotFoundException, IOException {
-		in = new Scanner(System.in);
-		
-		Subscriber sub = new Subscriber();
-		
-		sub.connect();
-		Message ms = sub.receive();
-		System.out.println("message after connect");
-		System.out.println(ms);
-		
-		//sub.start();
-		
-		while(true) {
-			System.out.println("Comandos:\n1- Listar localizações\n2- Subscribe");
-			
-			int num = in.nextInt();
-			
-			if(num == 1) {
-				/*ArrayList<String> tops = list();
-				if(tops.size() == 0)
-					System.out.println("Não existem tópicos listados");
-				else {
-					for(String t : tops) {
-						System.out.println("- " + t);
-					}	
-				}*/
-				
-			} else if(num == 2) {
-				System.out.println("Digite a localização que vocẽ tem interesse");
-				in.nextLine();
-				String topic = in.nextLine();
-				sub.subscribe(topic);
-			}
-		}
+	public Message receive() throws ClassNotFoundException, IOException {
+		return subscribeQueueManagerProxy.receive();
 	}
 	
 	public void run() {
 		while(true) {
 			try {
-				receive();
+				if(this.sentMessage) {
+					Message mes = receive();
+					if(!mes.getPayload().getFields().isEmpty()) {
+						System.out.println("MENSAGEM RECEBIDA!");
+						System.out.println("Localização: " + mes.getOptionalHeader().getFields());
+						System.out.println("Dados: " + mes.getPayload().getFields());
+					}
+				}
 			} catch (ClassNotFoundException | IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
