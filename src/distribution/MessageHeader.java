@@ -41,7 +41,7 @@ public class MessageHeader {
 	public MessageHeader(ArrayList<Byte> content){
 		mqttControlPacketType = content.get(0);
 		int opId = Byte.toUnsignedInt(mqttControlPacketType) >> 4;
-		System.out.println(opId);
+		//System.out.println(opId);
 		switch(opId){
 			case 1:
 				op = Operation.CONNECT;

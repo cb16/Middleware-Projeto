@@ -9,7 +9,6 @@ import java.net.UnknownHostException;
 public class ClientRequestHandler {
 	private String host;
 	private int port;
-	private boolean expectedReply;
 	
 	int sentMessageSize;
 	int receivedMessageSize;
@@ -18,29 +17,26 @@ public class ClientRequestHandler {
 	DataOutputStream outToServer = null;
 	DataInputStream inFromServer = null;
 	
-	public ClientRequestHandler(String host, int port, boolean expectedReply) {
+	public ClientRequestHandler(String host, int port) {
 		this.host = host;
 		this.port = port;
-		this.expectedReply = expectedReply;
+		try {
+			clientSocket = new Socket(this.host, this.port);
+			outToServer = new DataOutputStream(clientSocket.getOutputStream());
+			inFromServer = new DataInputStream(clientSocket.getInputStream());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 	
-	public void send(byte[] message) throws UnknownHostException, IOException {
-		clientSocket = new Socket(this.host, this.port);
-		outToServer = new DataOutputStream(clientSocket.getOutputStream());
-		inFromServer = new DataInputStream(clientSocket.getInputStream());
-		
+	public synchronized void send(byte[] message) throws UnknownHostException, IOException {
+		System.out.println("message size " + message.length);
 		sentMessageSize = message.length;
 		outToServer.writeInt(sentMessageSize);
 		outToServer.write(message, 0, sentMessageSize);
 		outToServer.flush();
-		
-		/*if(!isExpectedReply()) {
-			System.out.println("closed");
-			clientSocket.close();
-			outToServer.close();
-			inFromServer.close();
-			return;
-		}*/
 	}
 	
 	public byte[] receive() throws IOException {
@@ -50,14 +46,7 @@ public class ClientRequestHandler {
 		message = new byte[receivedMessageSize];
 		inFromServer.read(message, 0, receivedMessageSize);
 		System.out.println("client received something");
-		clientSocket.close();
-		outToServer.close();
-		inFromServer.close();
-		
+
 		return message;
-	}
-	
-	public boolean isExpectedReply() {
-		return this.expectedReply;
 	}
 }

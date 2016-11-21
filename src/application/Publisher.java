@@ -61,7 +61,7 @@ public class Publisher {
 			int num = in.nextInt();
 			
 			if(num == 1) {
-				ArrayList<String> tops = list();
+				/*ArrayList<String> tops = list();
 				if(tops.size() == 0)
 					System.out.println("Não existem tópicos listados");
 				else {
@@ -69,20 +69,17 @@ public class Publisher {
 						System.out.println("- " + t);
 					}	
 				}
-				
+				*/
 			} else if(num==2) {
 				System.out.println("Digite a localização da medição:");
 				
-				//in.nextLine();
-				//String topic = in.nextLine();
-				String topic = "aqui";
-				
+				in.nextLine();
+				String topic = in.nextLine();
 				
 				Date date = new Date(System.currentTimeMillis());
 				
-				//System.out.println("Digite a temperatura:");
-				//double temp = in.nextDouble();
-				double temp = 29.5;
+				System.out.println("Digite a temperatura:");
+				double temp = in.nextDouble();
 				
 				MessagePayload payload = new MessagePayload();
 				payload.addField(date.toString());

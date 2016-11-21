@@ -31,14 +31,14 @@ public class ServerRequestHandler {
 		}
 	}
 	
-	public ServerSocketThread receive() throws IOException {
+	public Socket receive() throws IOException {
 		System.out.println("server waiting for request");
 		
 		connectionSocket = welcomeSocket.accept();
-		ServerSocketThread connectionThread = new ServerSocketThread(idCounter, connectionSocket);
-		idCounter++;
+		//ServerSocketThread connectionThread = new ServerSocketThread(idCounter, connectionSocket);
+		//idCounter++;
 		
-		return connectionThread;
+		return connectionSocket;
 	}
 	
 	public void send(byte[] message) throws IOException {

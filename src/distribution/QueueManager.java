@@ -2,7 +2,10 @@ package distribution;
 
 import infrastructure.ServerRequestHandler;
 
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,6 +16,7 @@ public class QueueManager extends Thread implements IQueueManager {
 	public static Map<String, Queue> queues;
 	private ServerRequestHandler requestHandler;
 	private HashMap<Integer, ServerSocketThread> connections;
+	private int idCounter;
 	
 	public QueueManager(String host, int port) {
 		this.host = host;
@@ -21,6 +25,7 @@ public class QueueManager extends Thread implements IQueueManager {
 		instantiateQueues();
 		this.requestHandler = new ServerRequestHandler(this.port);
 		this.connections = new HashMap<Integer, ServerSocketThread>();
+		this.idCounter = 0;
 	}
 	
 	public void instantiateQueues() {
@@ -57,38 +62,55 @@ public class QueueManager extends Thread implements IQueueManager {
 	}
 
 	public void receive() throws IOException, ClassNotFoundException {
-		ServerSocketThread thread = requestHandler.receive();
-		Message message;
-		connections.put(thread.getThreadId(), thread);
+		Socket socket = requestHandler.receive();
+
+		int id = idCounter;
+		idCounter++;
 		
-		connections.get(thread.getThreadId()).start();
+		ServerSocketThread thread = new ServerSocketThread(id, socket);
+		
+		InetAddress ipAddress = socket.getInetAddress();
+
+		connections.put(id, new ServerSocketThread(thread.getThreadId(), socket));
+		
+		thread = connections.get(id);
+		thread.start();
 		
 		System.out.println("QUEUE MANAGER - waiting for operation and message received");
 		
 		while(thread.getOperation() == null);
 		Operation operation = thread.getOperation();
 		
-		if(operation != Operation.LIST)
-			while(thread.getReceivedMessage() == null);
+		thread.setOperation(null);
 		
+		int threadId = thread.getThreadId();
+		Message message = null;
+		
+		addToQueue(operation, threadId, ipAddress, message);
+		
+		connections.put(id, thread);
+		
+	}
+	
+	public static void addToQueue(Operation operation, int id, InetAddress inetAddress, Message message) {
+		System.out.println("QM - adding " + operation + " message to queue");
 		switch(operation) {
 			case CONNECT:
 				System.out.println("QUEUE MANAGER - adding user connection");
-				queues.get("connect").enqueue(new ConnectionMessage(thread.getThreadId(), null));
+				queues.get("connect").enqueue(new ConnectionMessage(id, null));
 				break;
 			case LIST:
 				System.out.println("QUEUE MANAGER - adding list connection");
-				queues.get("list").enqueue(new ConnectionMessage(thread.getThreadId(), null));
+				queues.get("list").enqueue(new ConnectionMessage(id, null));
 				break;
 			case PUBLISH:
 				System.out.println("QUEUE MANAGER - adding publish connection");
-				queues.get("publish").enqueue(new ConnectionMessage(thread.getThreadId(), thread.getReceivedMessage()));
+				queues.get("publish").enqueue(new ConnectionMessage(id, message));
 				break;
 			case SUBSCRIBE:
 				System.out.println("QUEUE MANAGER - adding subscribe connection");
-				message = thread.getReceivedMessage();
-				message.getPayload().addField(thread.getSocket().getInetAddress().getHostAddress());
-				queues.get("subscribe").enqueue(new ConnectionMessage(thread.getThreadId(), thread.getReceivedMessage()));
+				message.getPayload().addField(inetAddress.getHostAddress());
+				queues.get("subscribe").enqueue(new ConnectionMessage(id, message));
 				break;
 		default:
 			break;

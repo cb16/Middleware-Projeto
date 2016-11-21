@@ -1,5 +1,7 @@
 package distribution;
 
+import java.net.InetAddress;
+
 public class ConnectionMessage {
 	private int connectionId;
 	private Message message;

@@ -45,7 +45,7 @@ public class Subscriber extends Thread {
 		Message message = new Message(header);
 		message.setOptionalHeader(optionalHeader);
 		message.setPayload(payload);
-		
+		System.out.println("calling send");
 		//sending message
 		subscribeQueueManagerProxy.send(message, Operation.SUBSCRIBE);
 	}
@@ -67,7 +67,14 @@ public class Subscriber extends Thread {
 	public static void main(String[] args) throws UnknownHostException, ClassNotFoundException, IOException {
 		in = new Scanner(System.in);
 		
-		connect();
+		Subscriber sub = new Subscriber();
+		
+		sub.connect();
+		Message ms = sub.receive();
+		System.out.println("message after connect");
+		System.out.println(ms);
+		
+		//sub.start();
 		
 		while(true) {
 			System.out.println("Comandos:\n1- Listar localizações\n2- Subscribe");
@@ -75,20 +82,20 @@ public class Subscriber extends Thread {
 			int num = in.nextInt();
 			
 			if(num == 1) {
-				ArrayList<String> tops = list();
+				/*ArrayList<String> tops = list();
 				if(tops.size() == 0)
 					System.out.println("Não existem tópicos listados");
 				else {
 					for(String t : tops) {
 						System.out.println("- " + t);
 					}	
-				}
+				}*/
 				
 			} else if(num == 2) {
 				System.out.println("Digite a localização que vocẽ tem interesse");
 				in.nextLine();
 				String topic = in.nextLine();
-				subscribe(topic);
+				sub.subscribe(topic);
 			}
 		}
 	}
