@@ -1,6 +1,9 @@
 package distribution;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -11,6 +14,7 @@ public class Broker extends Thread {
 	private static TopicRepository topicRepo;
 	private static QueueManager queueManager;
 	private static String listDelimiter = "\r\n";
+	private static HashMap<InetAddress, SubscribeUser> userRepo = new HashMap<>();
 	
 	public static void main(String[] args) throws ClassNotFoundException, IOException {
 		
@@ -32,31 +36,44 @@ public class Broker extends Thread {
 		ConnectionMessage conMessage;
 		
 		while(true) {
+			if(QueueManager.queues.get("connect").queueSize() > 0) {
+				conMessage = QueueManager.queues.get("connect").dequeue();
+				int conId = conMessage.getConnectionId();
+				Socket socket = queueManager.getConnection(conId).getSocket();
+				InetAddress IPAdress = socket.getInetAddress();
+
+				SubscribeUser user = new SubscribeUser(IPAdress, Config.port);
+				userRepo.put(IPAdress, user);
+				
+				System.out.println("broker received connect request");
+				Message sendMessage = formatConnectMessage();
+				QueueManager.queues.get("send").enqueue(new ConnectionMessage(conMessage.getConnectionId(), sendMessage));
+			}
 			
-			if(queueManager.queues.get("list").queueSize() > 0) {
-				conMessage = queueManager.queues.get("list").dequeue();
+			if(QueueManager.queues.get("list").queueSize() > 0) {
+				conMessage = QueueManager.queues.get("list").dequeue();
 				message = conMessage.getMessage();
 				System.out.println("broker received list request");
 				Message sendMessage = formatListingMessage();
-				queueManager.queues.get("send").enqueue(new ConnectionMessage(conMessage.getConnectionId(), sendMessage));
+				QueueManager.queues.get("send").enqueue(new ConnectionMessage(conMessage.getConnectionId(), sendMessage));
 			}
 			
-			if(queueManager.queues.get("publish").queueSize() > 0) {
-				conMessage = queueManager.queues.get("publish").dequeue();
+			if(QueueManager.queues.get("publish").queueSize() > 0) {
+				conMessage = QueueManager.queues.get("publish").dequeue();
 				message = conMessage.getMessage();
 				System.out.println("broker received publish message");
 				repoPublish(conMessage.getConnectionId(), message);
 			}
 			
-			if(queueManager.queues.get("subscribe").queueSize() > 0) {
-				conMessage = queueManager.queues.get("subscribe").dequeue();
+			if(QueueManager.queues.get("subscribe").queueSize() > 0) {
+				conMessage = QueueManager.queues.get("subscribe").dequeue();
 				message = conMessage.getMessage();
 				System.out.println("broker received subscribe message");
 				repoSubscribe(message);
 			}
 			
-			if(queueManager.queues.get("send").queueSize() > 0) {
-				conMessage = queueManager.queues.get("send").dequeue();
+			if(QueueManager.queues.get("send").queueSize() > 0) {
+				conMessage = QueueManager.queues.get("send").dequeue();
 				message = conMessage.getMessage();
 				System.out.println("broker enqueuing send response message");
 				try {
@@ -84,8 +101,16 @@ public class Broker extends Thread {
 		return message;
 	}
 	
+	public static Message formatConnectMessage(){
+		MessageHeader header = new MessageHeader(Operation.CONNACK, 0);
+		Message message = new Message(header);
+		
+		return message;
+	}
+	
 	private static void repoPublish(int conId, Message message) {
-		String topic = message.getBody().getLocation();
+		ArrayList<String> fields = message.getPayload().getFields();
+		String topic = fields.get(0);
 		
 		if(!topicRepo.getTopics().contains(topic))
 			createTopicInRepo(topic);
@@ -98,13 +123,22 @@ public class Broker extends Thread {
 	private static void repoSubscribe(Message message) {
 		ArrayList<String> fields = message.getPayload().getFields();
 		String topic = fields.get(0);
+		InetAddress IPAdress;
 		
-		SubscribeUser user = new SubscribeUser(message.getBody().getIP(), Config.port);
-		
-		if(!topicRepo.getTopics().contains(topic))
-			createTopicInRepo(topic);
-		
-		topicRepo.addSubscriber(topic, user);
+		try {
+			IPAdress = InetAddress.getByName(fields.get(1));
+			
+			SubscribeUser user = userRepo.get(IPAdress);
+			
+			if(!topicRepo.getTopics().contains(topic))
+				createTopicInRepo(topic);
+			
+			topicRepo.addSubscriber(topic, user);
+			
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	private static void createTopicInRepo(String topic) {

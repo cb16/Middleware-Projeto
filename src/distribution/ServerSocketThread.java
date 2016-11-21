@@ -5,8 +5,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 
-import utils.Config;
-
 public class ServerSocketThread extends Thread {
 	private Socket socket;
 	private int id;
@@ -32,7 +30,6 @@ public class ServerSocketThread extends Thread {
 		this.receivedMessage = null;
 		this.receivedMessageBytes = null;
 		this.id = id;
-		this.marshaller = new Marshaller();
 		keepRunning = true;
 		messageToSend = null;
 		operation = null;
@@ -111,5 +108,9 @@ public class ServerSocketThread extends Thread {
 	
 	public int getThreadId() {
 		return this.id;
+	}
+	
+	public Socket getSocket(){
+		return socket;
 	}
 }

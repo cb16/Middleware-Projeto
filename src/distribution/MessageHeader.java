@@ -8,8 +8,19 @@ public class MessageHeader {
 	private int remainingLength;
 	
 	public MessageHeader(Operation op, int remainingLength){
-		if(op == Operation.PUBLISH){
-			mqttControlPacketType = 3 << 4; // 0011 in the 4 least significant bits
+		switch(op){
+			case CONNECT:
+				// 0001 in the 4 least significant bits
+				mqttControlPacketType = (byte) (1 << 4); 
+				break;
+			case PUBLISH:
+				// 0011 in the 4 least significant bits
+				mqttControlPacketType = (byte) (3 << 4); 
+				break;
+			case SUBSCRIBE:
+				// 1000 in the 4 least significant bits
+				mqttControlPacketType = (byte) (8 << 4);
+				break;
 		}
 		
 		this.remainingLength = remainingLength;

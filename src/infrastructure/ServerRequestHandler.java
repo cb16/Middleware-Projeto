@@ -6,10 +6,6 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import distribution.Marshaller;
-import distribution.Message;
-import distribution.Operation;
-import distribution.RequestPacket;
 import distribution.ServerSocketThread;
 
 public class ServerRequestHandler {
@@ -25,7 +21,8 @@ public class ServerRequestHandler {
 	
 	public ServerRequestHandler(int port) {
 		this.port = port;
-		this.idCounter = 0;
+		idCounter = 0;
+		
 		try {
 			this.welcomeSocket = new ServerSocket(this.port);
 		} catch (IOException e) {
@@ -38,7 +35,6 @@ public class ServerRequestHandler {
 		System.out.println("server waiting for request");
 		
 		connectionSocket = welcomeSocket.accept();
-		byte[] receivedMessage;
 		ServerSocketThread connectionThread = new ServerSocketThread(idCounter, connectionSocket);
 		idCounter++;
 		
