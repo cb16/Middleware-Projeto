@@ -15,14 +15,36 @@ import distribution.MessagePayload;
 import distribution.QueueManagerProxy;
 
 public class Publisher {
-	private static QueueManagerProxy publishQueueManagerProxy = new QueueManagerProxy("publish");
-	private static Scanner in;
+	private QueueManagerProxy publishQueueManagerProxy;
 	
-	public static void publish(Message message) throws UnknownHostException, IOException {
-		publishQueueManagerProxy.send(message, Operation.PUBLISH);
+	public Publisher() {
+		publishQueueManagerProxy = new QueueManagerProxy("publish");
 	}
 	
-	private static void connect(){
+	public void publish(Date date, String topic, double temp) throws UnknownHostException, IOException {
+		MessagePayload payload = new MessagePayload();
+		payload.addField(date.toString());
+		payload.addField(Double.toString(temp));
+		
+		MessageOptionalHeader optionalHeader = new MessageOptionalHeader();
+		optionalHeader.addField(topic);
+		int headerLength = payload.length() + optionalHeader.length();
+		MessageHeader header = new MessageHeader(Operation.PUBLISH, headerLength);
+		
+		Message message = new Message(header);
+		message.setOptionalHeader(optionalHeader);
+		message.setPayload(payload);
+		
+		try {
+			publishQueueManagerProxy.send(message, Operation.PUBLISH);
+		} catch(SocketException e) {
+			System.out.println("Server has fallen!");
+			publishQueueManagerProxy.closeConnection();
+		}
+		
+	}
+	
+	public void connect(){
 		MessagePayload payload = new MessagePayload();
 		payload.addField("MQTT");
 
@@ -39,53 +61,9 @@ public class Publisher {
 		}
 	}
 	
-	public static void main(String[] args) throws UnknownHostException, ClassNotFoundException, IOException {
-		in = new Scanner(System.in);
-		
-		connect();
-		
-		while(true) {
-			if(publishQueueManagerProxy.getRequestHandler().getSocket().isClosed()) {
-				System.out.println("Server has fallen!");
-				break;
-			}
-			
-			System.out.println("Comandos:\n1- Publicar medição de temperatura");
-			
-			int num = in.nextInt();
-			
-			if(num==1) {
-				System.out.println("Digite a localização da medição:");
-				
-				in.nextLine();
-				String topic = in.nextLine();
-				
-				Date date = new Date(System.currentTimeMillis());
-				
-				System.out.println("Digite a temperatura:");
-				double temp = in.nextDouble();
-				
-				MessagePayload payload = new MessagePayload();
-				payload.addField(date.toString());
-				payload.addField(Double.toString(temp));
-				
-				MessageOptionalHeader optionalHeader = new MessageOptionalHeader();
-				optionalHeader.addField(topic);
-				int headerLength = payload.length() + optionalHeader.length();
-				MessageHeader header = new MessageHeader(Operation.PUBLISH, headerLength);
-				
-				Message message = new Message(header);
-				message.setOptionalHeader(optionalHeader);
-				message.setPayload(payload);
-				
-				try {
-					publish(message);
-				} catch(SocketException e) {
-					System.out.println("Server has fallen!");
-					publishQueueManagerProxy.closeConnection();
-				}
-					
-			}
-		}
+	public QueueManagerProxy getQueueManagerProxy() {
+		return publishQueueManagerProxy;
 	}
+	
+	
 }

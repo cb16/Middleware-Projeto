@@ -6,6 +6,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.SocketException;
 
 public class ConnectionHandler extends Thread {
 	private Socket socket;
@@ -90,6 +91,8 @@ public class ConnectionHandler extends Thread {
 			}
 			
 		} catch (EOFException e) {
+			stopRunning();
+		} catch (SocketException e){
 			stopRunning();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

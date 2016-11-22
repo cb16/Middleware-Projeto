@@ -14,9 +14,9 @@ import distribution.QueueManagerProxy;
 
 public class Subscriber extends Thread {
 	QueueManagerProxy subscribeQueueManagerProxy = new QueueManagerProxy("subscribe");
-	boolean sentMessage;
+	public boolean sentMessage;
 	ArrayList<Message> receivedMessages;
-	boolean keepRunning;
+	public boolean keepRunning;
 	
 	public Subscriber() {
 		receivedMessages = new ArrayList<Message>();
@@ -55,6 +55,7 @@ public class Subscriber extends Thread {
 		
 		//sending message
 		subscribeQueueManagerProxy.send(message, Operation.SUBSCRIBE);
+		this.sentMessage = true;
 	}
 	
 	public Message receive() throws ClassNotFoundException, IOException {

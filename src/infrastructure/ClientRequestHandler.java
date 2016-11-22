@@ -5,6 +5,7 @@ import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 
 public class ClientRequestHandler {
@@ -46,6 +47,11 @@ public class ClientRequestHandler {
 			message = new byte[receivedMessageSize];
 			inFromServer.read(message, 0, receivedMessageSize);
 		} catch (EOFException e) {
+			System.out.println("Server has fallen!");
+			clientSocket.close();
+			inFromServer.close();
+			outToServer.close();
+		} catch(SocketException e) {
 			System.out.println("Server has fallen!");
 			clientSocket.close();
 			inFromServer.close();
