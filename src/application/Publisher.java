@@ -22,18 +22,6 @@ public class Publisher {
 		publishQueueManagerProxy.send(message, Operation.PUBLISH);
 	}
 	
-	public static ArrayList<String> list() throws UnknownHostException, IOException, ClassNotFoundException {
-		MessageHeader header = new MessageHeader(Operation.LIST, 0);
-		Message message = new Message(header);
-		
-		
-		Message listMessage = publishQueueManagerProxy.receive();
-		
-		ArrayList<String> topicList = listMessage.getPayload().getList();
-		
-		return topicList;
-	}
-	
 	private static void connect(){
 		MessagePayload payload = new MessagePayload();
 		payload.addField("MQTT");
@@ -62,21 +50,11 @@ public class Publisher {
 				break;
 			}
 			
-			System.out.println("Comandos:\n1- Listar Localizações\n2- Publicar medição de temperatura");
+			System.out.println("Comandos:\n1- Publicar medição de temperatura");
 			
 			int num = in.nextInt();
 			
-			if(num == 1) {
-				/*ArrayList<String> tops = list();
-				if(tops.size() == 0)
-					System.out.println("Não existem tópicos listados");
-				else {
-					for(String t : tops) {
-						System.out.println("- " + t);
-					}	
-				}
-				*/
-			} else if(num==2) {
+			if(num==1) {
 				System.out.println("Digite a localização da medição:");
 				
 				in.nextLine();

@@ -20,21 +20,11 @@ public class SubscriberRunner {
 		
 		while(true) {
 			
-			System.out.println("Comandos:\n1- Listar localizações\n2- Subscribe");
+			System.out.println("Comandos:\n1- Subscribe");
 			
 			int num = in.nextInt();
 			
 			if(num == 1) {
-				/*ArrayList<String> tops = list();
-				if(tops.size() == 0)
-					System.out.println("Não existem tópicos listados");
-				else {
-					for(String t : tops) {
-						System.out.println("- " + t);
-					}	
-				}*/
-				
-			} else if(num == 2) {
 				System.out.println("Digite a localização que vocẽ tem interesse");
 				in.nextLine();
 				String topic = in.nextLine();

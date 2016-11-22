@@ -21,13 +21,7 @@ public class Message{
 		}
 		
 		header = new MessageHeader(list);
-		/*for(Byte b: list){
-			System.out.print(Byte.toUnsignedInt(b));
-			System.out.print(" ");
-		}
-		/*System.out.println("");
-		System.out.print("Header Length: ");
-		System.out.println(header.getRemainingLength());*/
+		
 		if(header.getOperation() == Operation.PUBLISH || header.getOperation() == Operation.SUBSCRIBE){
 			optionalHeader = new MessageOptionalHeader(list.subList(list.size() - header.getRemainingLength(), list.size()), header.getOperation());
 			fromIndexPayload += optionalHeader.length();

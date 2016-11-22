@@ -53,6 +53,7 @@ public class ConnectionHandler extends Thread {
 	}
 	
 	public void setReceivedMessage(Message message) {
+		System.out.println("setting received message - op " + message.getHeader().getOperation());
 		QueueManager.addToQueue(message.getHeader().getOperation(), id, socket.getInetAddress(), message);
 		this.receivedMessage = message;
 	}
@@ -83,7 +84,7 @@ public class ConnectionHandler extends Thread {
 				inFromClient.read(receivedMessageBytes, 0, receivedMessageSize);
 				
 				Message message = new Message(receivedMessageBytes);
-				
+				System.out.println("operation new " + message.getHeader().getOperation());
 				this.operation = message.getHeader().getOperation();
 				setReceivedMessage(message);
 			}

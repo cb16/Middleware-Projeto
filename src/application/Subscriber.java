@@ -55,17 +55,6 @@ public class Subscriber extends Thread {
 		
 		//sending message
 		subscribeQueueManagerProxy.send(message, Operation.SUBSCRIBE);
-		//sentMessage = true;
-	}
-	
-	public ArrayList<String> list() throws UnknownHostException, IOException, ClassNotFoundException {
-		subscribeQueueManagerProxy.send(null, Operation.LIST);
-		
-		Message listMessage = subscribeQueueManagerProxy.receive();
-		
-		ArrayList<String> topicList = listMessage.getPayload().getList();
-		
-		return topicList;
 	}
 	
 	public Message receive() throws ClassNotFoundException, IOException {
