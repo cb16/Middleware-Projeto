@@ -60,14 +60,13 @@ public class QueueManager extends Thread implements IQueueManager {
 			id = message.getPayload().getFields().get(0);
 			thread.setId(id);
 			
-			System.out.println("Connection: "+connections.get(id));
 			if(connections.get(id) == null){
 				// doesn't set a new thread if is a returning user
-				thread.start();
 				connections.put(id, thread);
 			} else {
 				connections.get(id).setSocket(socket);
 			}
+			
 			thread.setReceivedMessage(message);
 		}
 	}

@@ -15,7 +15,7 @@ public class SubscriberRunner {
 		//String id = in.nextLine();
 		//subscriber.connect(id);
 		
-		subscriber.connect("sub");
+		subscriber.connect("sub-1");
 		
 		subscriber.sentMessage = true;
 		

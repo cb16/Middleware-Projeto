@@ -53,7 +53,7 @@ public class Broker extends Thread {
 					ConnectionHandler conn = queueManager.getConnection(conId);
 					try {
 						conn.send(sendMessage.toByteArray());
-						conn.startSendThread();
+						conn.start();
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();

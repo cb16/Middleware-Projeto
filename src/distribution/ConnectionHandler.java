@@ -9,7 +9,7 @@ import java.net.SocketException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-public class ConnectionHandler extends Thread {
+public class ConnectionHandler{
 	private Socket socket;
 	private String id;
 	
@@ -23,25 +23,14 @@ public class ConnectionHandler extends Thread {
 	byte[] receivedMessageBytes;
 		
 	volatile boolean keepRunning;
-	volatile boolean sendRunning;
 
 	Operation operation;
 	
 	public ConnectionHandler(Socket socket) {
-		this.socket = socket;
+		setSocket(socket);
 		this.receivedMessageBytes = null;
-		keepRunning = true;
-		sendRunning = false;
+		keepRunning = false;
 		operation = null;
-
-		try {
-			inFromClient = new DataInputStream(socket.getInputStream());
-			outToClient = new DataOutputStream(socket.getOutputStream());
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
 	}
 	
 	public void setId(String id){
@@ -62,41 +51,45 @@ public class ConnectionHandler extends Thread {
 		return operation;
 	}
 	
-	public void startSendThread(){
-		if(!sendRunning){
-			System.out.println("Starting send thread for "+id);
-			System.out.println("Current queue: "+ queue);
-			
-			sendRunning = true;
-			
-			Thread sendThread = (new Thread() {
-				public void run() {
-					byte[] toSend = null;
-					while(keepRunning && sendRunning){
-						try {
-							toSend = queue.take();
-							send(toSend);
-						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						} catch (IOException e) {
-							queue.offer(toSend);
-							sendRunning = false;
-						}
+	private void startSendThread(){			
+		Thread sendThread = (new Thread() {
+			public void run() {
+				byte[] toSend = null;
+				while(keepRunning){
+					try {
+						toSend = queue.take();
+						send(toSend);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (IOException e) {
+						queue.offer(toSend);
+						stopRunning();
 					}
 				}
-			});
-			
-			sendThread.start();
-		}
+			}
+		});
+		
+		sendThread.start();
 	}
 	
-	public void run() {
-		startSendThread();
-		while(keepRunning) {
-			if(sendRunning){
-				receive();
+	private void startReceiveThread(){
+		Thread receiveThread = (new Thread() {
+			public void run() {
+				while(keepRunning) {
+					receive();
+				}
 			}
+		});
+		
+		receiveThread.start();
+	}
+	
+	public void start() {
+		if(!keepRunning){
+			keepRunning = true;
+			startSendThread();
+			startReceiveThread();
 		}
 	}
 	
@@ -179,21 +172,20 @@ public class ConnectionHandler extends Thread {
 	}
 	
 	public void stopRunning() {
-		System.out.println("BROKER - Connection " + this.id + " has been terminated");
-		
-//		keepRunning = false;
-		sendRunning = false;
-		try {
-			socket.close();
-			outToClient.close();
-			inFromClient.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		if(keepRunning){
+			System.out.println("BROKER - Connection " + this.id + " has been terminated");
+			
+			keepRunning = false;
+
+			try {
+				socket.close();
+				outToClient.close();
+				inFromClient.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
-		
-//		QueueManager.connections.remove(this.id);
-		
 	}
 	
 	public void setSendMessage(byte[] bytesMessage) {
@@ -209,14 +201,23 @@ public class ConnectionHandler extends Thread {
 	}
 
 	public void setSocket(Socket socket) {
-		this.socket = socket;
-		
-		try {
-			inFromClient = new DataInputStream(socket.getInputStream());
-			outToClient = new DataOutputStream(socket.getOutputStream());
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		if(!keepRunning){
+			this.socket = socket;
+			
+			try {
+				inFromClient = new DataInputStream(socket.getInputStream());
+				outToClient = new DataOutputStream(socket.getOutputStream());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} else {
+			try {
+				socket.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 }
