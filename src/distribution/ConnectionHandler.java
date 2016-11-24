@@ -12,7 +12,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class ConnectionHandler extends Thread {
 	private Socket socket;
 	private String id;
-	public Object monitor;
 	
 	int sentMessageSize;
 	int receivedMessageSize;
@@ -198,7 +197,7 @@ public class ConnectionHandler extends Thread {
 	}
 	
 	public void setSendMessage(byte[] bytesMessage) {
-		System.out.println(queue);
+		queue.offer(bytesMessage);
 	}
 	
 	public String getThreadId() {
