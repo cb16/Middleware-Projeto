@@ -1,17 +1,16 @@
 package distribution;
 
-import java.net.InetAddress;
 
 public class ConnectionMessage {
-	private int connectionId;
+	private String connectionId;
 	private Message message;
 	
-	public ConnectionMessage(int conId, Message message) {
+	public ConnectionMessage(String conId, Message message) {
 		this.connectionId = conId;
 		this.message = message;
 	}
 
-	public int getConnectionId() {
+	public String getConnectionId() {
 		return connectionId;
 	}
 

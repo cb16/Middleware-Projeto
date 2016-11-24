@@ -2,30 +2,24 @@ package distribution;
 
 import infrastructure.ServerRequestHandler;
 
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class QueueManager extends Thread implements IQueueManager {
-	private String host;
 	private int port;
 	public static BlockingQueue<Invoker> queue =  new LinkedBlockingQueue<Invoker>(); 
 	private ServerRequestHandler requestHandler;
-	protected static volatile HashMap<Integer, ConnectionHandler> connections;
-	private int idCounter;
-	
-	public QueueManager(String host, int port) {
-		this.host = host;
+	protected static volatile HashMap<String, ConnectionHandler> connections;
+
+	public QueueManager(int port) {
 		this.port = port;
 		this.requestHandler = new ServerRequestHandler(this.port);
-		QueueManager.connections = new HashMap<Integer, ConnectionHandler>();
-		this.idCounter = 0;
+		QueueManager.connections = new HashMap<String, ConnectionHandler>();
 	}
 	
 	public void enqueueSendMessage(ConnectionMessage conMessage) {
@@ -33,7 +27,7 @@ public class QueueManager extends Thread implements IQueueManager {
 		queue.offer(new Invoker("send", conMessage));
 	}
 	
-	public ConnectionHandler getConnection(int conId){
+	public ConnectionHandler getConnection(String conId){
 		return connections.get(conId); 
 	}
 	
@@ -46,42 +40,34 @@ public class QueueManager extends Thread implements IQueueManager {
 	    return ret;
 	}
 
-	public void send(int conId, Message message) throws IOException {
+	public void send(String conId, Message message) throws IOException {
 		byte[] bytes = toByteArray(message.toBytes());
 		
 		connections.get(conId).setSendMessage(bytes);
 	}
 
 	public void receive() throws IOException, ClassNotFoundException {
-		Socket socket = requestHandler.receive();
-
-		int id = idCounter;
-		idCounter++;
+		Socket socket = requestHandler.accept();
+		String id;
+		Message message;
 		
-		ConnectionHandler thread = new ConnectionHandler(id, socket);
+		ConnectionHandler thread = new ConnectionHandler(socket);
+//		thread.receive();
+		message = thread.connect();
 		
-		InetAddress ipAddress = socket.getInetAddress();
-
-		connections.put(id, new ConnectionHandler(thread.getThreadId(), socket));
 		
-		thread = connections.get(id);
-		thread.start();
-		
-		while(thread.getOperation() == null);
-		Operation operation = thread.getOperation();
-		
-		thread.setOperation(null);
-		
-		int threadId = thread.getThreadId();
-		Message message = null;
-		
-		addToQueue(operation, threadId, ipAddress, message);
-		
-		connections.put(id, thread);
-		
+		if(message != null){
+			thread.start();
+			
+			id = message.getPayload().getFields().get(0);
+			thread.setId(id);
+			
+			connections.put(id, thread);
+			thread.setReceivedMessage(message);
+		}
 	}
 	
-	public static void addToQueue(Operation operation, int id, InetAddress inetAddress, Message message) {
+	public static void addToQueue(Operation operation, String id, InetAddress inetAddress, Message message) {
 		switch(operation) {
 			case CONNECT:
 				System.out.println("QUEUE MANAGER - adding user connection");
@@ -106,12 +92,6 @@ public class QueueManager extends Thread implements IQueueManager {
 	}
 	
 	public void run() {
-		try {
-			receive();
-		} catch (ClassNotFoundException | IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
 		while(true) {
 			try {
 				receive();
@@ -129,19 +109,19 @@ public class QueueManager extends Thread implements IQueueManager {
 
 	public void sendPublicationToSubscribers(Message message, ArrayList<SubscribeUser> users) {
 		for(SubscribeUser user : users) {
-			int userConId = getUserConId(user);
-			if(userConId != -1)
+			String userConId = getUserConId(user);
+			if(userConId != "")
 				enqueueSendMessage(new ConnectionMessage(userConId, message));
 		}		
 	}
 	
-	public int getUserConId(SubscribeUser user) {
-		for(Integer id : connections.keySet()) {
+	public String getUserConId(SubscribeUser user) {
+		for(String id : connections.keySet()) {
 			ConnectionHandler thread = connections.get(id);
 			if(thread.getSocket().getInetAddress() == user.getIP()) {
 				return id;
 			}
 		}
-		return -1;
+		return "";
 	}
 }

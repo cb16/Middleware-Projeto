@@ -1,8 +1,6 @@
 package test;
 
 import java.io.IOException;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
@@ -22,7 +20,7 @@ public class MultipleRunner {
 		
 		for(int i = 0; i < subscriberLimit; i++) {
 			Subscriber sub = new Subscriber();
-			sub.connect();
+			sub.connect("sub-"+i);
 			sub.start();
 			sub.sentMessage = true;
 			subscribers[i] = sub;
@@ -30,7 +28,7 @@ public class MultipleRunner {
 		
 		for(int i = 0; i < publisherLimit; i++) {
 			Publisher pub = new Publisher();
-			pub.connect();
+			pub.connect("pub"+i);
 			publishers[i] = pub;
 		}
 		

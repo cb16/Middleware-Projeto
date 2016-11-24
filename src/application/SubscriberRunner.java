@@ -1,18 +1,21 @@
 package application;
 
 import java.io.IOException;
-import java.net.UnknownHostException;
 import java.util.Scanner;
 
-import distribution.Message;
 
 public class SubscriberRunner {
+	private static Scanner in;
+
 	public static void main(String[] args) {
 		Subscriber subscriber = new Subscriber();
 		
-		Scanner in = new Scanner(System.in);
+		in = new Scanner(System.in);
 		
-		subscriber.connect();
+		//String id = in.nextLine();
+		//subscriber.connect(id);
+		
+		subscriber.connect("sub");
 		
 		subscriber.sentMessage = true;
 		

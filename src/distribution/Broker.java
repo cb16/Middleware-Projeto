@@ -19,7 +19,7 @@ public class Broker extends Thread {
 		
 		topicRepo = new TopicRepository();
 		
-		queueManager = new QueueManager("localhost", Config.port);
+		queueManager = new QueueManager(Config.port);
 		
 		queueManager.start();
 		
@@ -41,7 +41,7 @@ public class Broker extends Thread {
 				conMessage = invoker.getConnectionMessage();
 
 				if(operation == "connect") {
-					int conId = conMessage.getConnectionId();
+					String conId = conMessage.getConnectionId();
 					Socket socket = queueManager.getConnection(conId).getSocket();
 					InetAddress IPAdress = socket.getInetAddress();
 
@@ -111,7 +111,7 @@ public class Broker extends Thread {
 		return message;
 	}
 	
-	private static void repoPublish(int conId, Message message) {
+	private static void repoPublish(String conId, Message message) {
 		ArrayList<String> fields = message.getOptionalHeader().getFields();
 		System.out.println(fields);
 		String topic = fields.get(0);
@@ -152,7 +152,7 @@ public class Broker extends Thread {
 		topicRepo.addTopicPublish(topic);
 	}
 	
-	private static void checkTopicSubscribersAndSend(String topic, Message message, int conId) {
+	private static void checkTopicSubscribersAndSend(String topic, Message message, String conId) {
 		ArrayList<SubscribeUser> users = topicRepo.getTopicSubscribersRepo().get(topic);
 		System.out.println(">Subscribers for " + topic);
 		System.out.println(users);

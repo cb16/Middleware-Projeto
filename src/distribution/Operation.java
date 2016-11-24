@@ -1,5 +1,5 @@
 package distribution;
 
 public enum Operation {
-	CONNECT, CONNACK, LIST, PUBLISH, SUBSCRIBE
+	CONNECT, CONNACK, DISCONNECT, LIST, PUBLISH, SUBSCRIBE
 }

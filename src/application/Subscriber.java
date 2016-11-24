@@ -3,7 +3,6 @@ package application;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Scanner;
 
 import distribution.Message;
 import distribution.MessageHeader;
@@ -23,11 +22,15 @@ public class Subscriber extends Thread {
 		keepRunning = true;
 	}
 	
-	public void connect(){
+	public void connect(String id){
+		MessageOptionalHeader optionalHeader = new MessageOptionalHeader();
+		optionalHeader.addField("MQTT");
+		
 		MessagePayload payload = new MessagePayload();
-		payload.addField("MQTT");
+		payload.addField(id);
 
-		MessageHeader header = new MessageHeader(Operation.CONNECT, payload.length());
+		int remainingLength = optionalHeader.length() + payload.length();
+		MessageHeader header = new MessageHeader(Operation.CONNECT, remainingLength);
 		
 		Message message = new Message(header);
 		message.setPayload(payload);

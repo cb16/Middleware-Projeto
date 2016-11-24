@@ -9,7 +9,7 @@ public class MessageOptionalHeader {
 	public MessageOptionalHeader(List<Byte> list, Operation op) {
 		int numFields = 0;
 		
-		if(op == Operation.PUBLISH || op == Operation.SUBSCRIBE){
+		if(op == Operation.CONNECT || op == Operation.PUBLISH || op == Operation.SUBSCRIBE){
 			numFields = 1;
 		}
 		

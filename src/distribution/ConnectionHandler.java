@@ -4,33 +4,29 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
 
 public class ConnectionHandler extends Thread {
 	private Socket socket;
-	private int id;
+	private String id;
 	
 	int sentMessageSize;
 	int receivedMessageSize;
 	DataOutputStream outToClient = null;
 	DataInputStream inFromClient = null;
+	Queue sendMessages = new Queue();
 	
 	byte[] messageToSend;
 	byte[] receivedMessageBytes;
-	
-	Message receivedMessage;
-	
+		
 	volatile boolean keepRunning;
 
 	Operation operation;
 	
-	public ConnectionHandler(int id, Socket socket) {
+	public ConnectionHandler(Socket socket) {
 		this.socket = socket;
-		this.receivedMessage = null;
 		this.receivedMessageBytes = null;
-		this.id = id;
 		keepRunning = true;
 		messageToSend = null;
 		operation = null;
@@ -45,18 +41,18 @@ public class ConnectionHandler extends Thread {
 		
 	}
 	
+	public void setId(String id){
+		this.id = id;
+	}
+	
 	public byte[] getReceivedMessageBytes() {
 		return this.receivedMessageBytes;
 	}
 	
-	public Message getReceivedMessage() {
-		return this.receivedMessage;
-	}
 	
 	public void setReceivedMessage(Message message) {
 		System.out.println("setting received message - op " + message.getHeader().getOperation());
 		QueueManager.addToQueue(message.getHeader().getOperation(), id, socket.getInetAddress(), message);
-		this.receivedMessage = message;
 	}
 	
 	public Operation getOperation() {
@@ -64,6 +60,7 @@ public class ConnectionHandler extends Thread {
 	}
 	
 	public void run() {
+		
 		while(keepRunning) {
 			receive();
 		}
@@ -72,7 +69,6 @@ public class ConnectionHandler extends Thread {
 	public void receive() {
 		try {
 			inFromClient = new DataInputStream(socket.getInputStream());
-			outToClient = new DataOutputStream(socket.getOutputStream());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -98,7 +94,39 @@ public class ConnectionHandler extends Thread {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	public Message connect(){
+		try {
+			inFromClient = new DataInputStream(socket.getInputStream());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		try {
+			
+			receivedMessageSize = inFromClient.readInt();
+			synchronized(this) {
+				receivedMessageBytes = new byte[receivedMessageSize];
+				inFromClient.read(receivedMessageBytes, 0, receivedMessageSize);
+				
+				Message message = new Message(receivedMessageBytes);
+				System.out.println("operation new " + message.getHeader().getOperation());
+				this.operation = message.getHeader().getOperation();
+				
+				return message;
+			}
+			
+		} catch (EOFException e) {
+			stopRunning();
+		} catch (SocketException e){
+			stopRunning();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
+		return null;
 	}
 	
 	public void send() {
@@ -143,7 +171,7 @@ public class ConnectionHandler extends Thread {
 		send();
 	}
 	
-	public int getThreadId() {
+	public String getThreadId() {
 		return this.id;
 	}
 	

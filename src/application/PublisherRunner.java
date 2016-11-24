@@ -6,12 +6,14 @@ import java.util.Date;
 import java.util.Scanner;
 
 public class PublisherRunner {
+	private static Scanner in;
+
 	public static void main(String[] args) throws UnknownHostException, ClassNotFoundException, IOException {
-		Scanner in = new Scanner(System.in);
+		in = new Scanner(System.in);
 		
 		Publisher pub = new Publisher();
 		
-		pub.connect();
+		pub.connect("pub");
 		
 		while(true) {
 			if(pub.getQueueManagerProxy().getRequestHandler().getSocket().isClosed()) {

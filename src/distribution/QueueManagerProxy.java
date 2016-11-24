@@ -7,11 +7,9 @@ import utils.Config;
 import infrastructure.ClientRequestHandler;
 
 public class QueueManagerProxy {
-	private String queueName;
 	private ClientRequestHandler requestHandler;
 	
 	public QueueManagerProxy(String queueName) {
-		this.queueName = queueName;
 		this.requestHandler = new ClientRequestHandler("localhost", Config.port);
 	}
 	
@@ -19,7 +17,7 @@ public class QueueManagerProxy {
 		requestHandler.close();
 	}
 	
-	public void send(Message message, Enum operation) throws UnknownHostException, IOException {
+	public void send(Message message, Operation operation) throws UnknownHostException, IOException {
 		//Envio da requisição
 		requestHandler.send(message.toByteArray());
 		
