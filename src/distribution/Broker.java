@@ -35,54 +35,58 @@ public class Broker extends Thread {
 		ConnectionMessage conMessage;
 		
 		while(true) {
-			if(QueueManager.queues.get("connect").queueSize() > 0) {
-				conMessage = QueueManager.queues.get("connect").dequeue();
-				int conId = conMessage.getConnectionId();
-				Socket socket = queueManager.getConnection(conId).getSocket();
-				InetAddress IPAdress = socket.getInetAddress();
+			try {
+				Invoker invoker = QueueManager.queue.take();
+				String operation = invoker.getOp();
+				conMessage = invoker.getConnectionMessage();
 
-				SubscribeUser user = new SubscribeUser(IPAdress, Config.port);
-				userRepo.put(IPAdress, user);
-				
-				System.out.println("BROKER received connect request");
-				Message sendMessage = formatConnectMessage();
-				QueueManager.queues.get("send").enqueue(new ConnectionMessage(conMessage.getConnectionId(), sendMessage));
-			}
-			
-			if(QueueManager.queues.get("list").queueSize() > 0) {
-				conMessage = QueueManager.queues.get("list").dequeue();
-				message = conMessage.getMessage();
-				System.out.println("BROKER received list request");
-				Message sendMessage = formatListingMessage();
-				QueueManager.queues.get("send").enqueue(new ConnectionMessage(conMessage.getConnectionId(), sendMessage));
-			}
-			
-			if(QueueManager.queues.get("publish").queueSize() > 0) {
-				conMessage = QueueManager.queues.get("publish").dequeue();
-				message = conMessage.getMessage();
-				System.out.println("BROKER received publish message");
-				repoPublish(conMessage.getConnectionId(), message);
-			}
-			
-			if(QueueManager.queues.get("subscribe").queueSize() > 0) {
-				conMessage = QueueManager.queues.get("subscribe").dequeue();
-				message = conMessage.getMessage();
-				System.out.println("BROKER received subscribe message");
-				repoSubscribe(message);
-			}
-			
-			if(QueueManager.queues.get("send").queueSize() > 0) {
-				conMessage = QueueManager.queues.get("send").dequeue();
-				message = conMessage.getMessage();
-				System.out.println("BROKER enqueuing send response message");
-				try {
-					queueManager.send(conMessage.getConnectionId(), message);
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+				if(operation == "connect") {
+					int conId = conMessage.getConnectionId();
+					Socket socket = queueManager.getConnection(conId).getSocket();
+					InetAddress IPAdress = socket.getInetAddress();
+
+					SubscribeUser user = new SubscribeUser(IPAdress, Config.port);
+					userRepo.put(IPAdress, user);
+					
+					System.out.println("BROKER received connect request");
+					Message sendMessage = formatConnectMessage();
+					QueueManager.queue.offer(new Invoker("send", new ConnectionMessage(conMessage.getConnectionId(), sendMessage)));
 				}
-			}
-			
+				
+				if(operation == "list") {
+					message = conMessage.getMessage();
+					System.out.println("BROKER received list request");
+					Message sendMessage = formatListingMessage();
+					QueueManager.queue.offer(new Invoker("send", new ConnectionMessage(conMessage.getConnectionId(), sendMessage)));
+				}
+				
+				if(operation == "publish") {
+					message = conMessage.getMessage();
+					System.out.println("BROKER received publish message");
+					repoPublish(conMessage.getConnectionId(), message);
+				}
+				
+				if(operation == "subscribe") {
+					message = conMessage.getMessage();
+					System.out.println("BROKER received subscribe message");
+					repoSubscribe(message);
+				}
+				
+				if(operation == "send") {
+					message = conMessage.getMessage();
+					System.out.println("BROKER enqueuing send response message");
+					try {
+						queueManager.send(conMessage.getConnectionId(), message);
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+				
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}			
 		}
 	}
 	

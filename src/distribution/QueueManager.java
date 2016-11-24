@@ -9,11 +9,13 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class QueueManager extends Thread implements IQueueManager {
 	private String host;
 	private int port;
-	public static Map<String, Queue> queues;
+	public static BlockingQueue<Invoker> queue =  new LinkedBlockingQueue<Invoker>(); 
 	private ServerRequestHandler requestHandler;
 	protected static volatile HashMap<Integer, ConnectionHandler> connections;
 	private int idCounter;
@@ -21,25 +23,14 @@ public class QueueManager extends Thread implements IQueueManager {
 	public QueueManager(String host, int port) {
 		this.host = host;
 		this.port = port;
-		QueueManager.queues = new HashMap<String, Queue>();
-		instantiateQueues();
 		this.requestHandler = new ServerRequestHandler(this.port);
-		this.connections = new HashMap<Integer, ConnectionHandler>();
+		QueueManager.connections = new HashMap<Integer, ConnectionHandler>();
 		this.idCounter = 0;
-	}
-	
-	public void instantiateQueues() {
-		queues.put("connect", new Queue()); // conectar novos usuários
-		queues.put("publish", new Queue()); // publishers enviam para essa fila
-		queues.put("subscribe", new Queue()); // subscribers enviam para essa fila
-		queues.put("list", new Queue()); // list requests
-		queues.put("send", new Queue()); // usada pelo broker para enviar mensagens para os 
-										//subscribers (principalmente) e publishers
 	}
 	
 	public void enqueueSendMessage(ConnectionMessage conMessage) {
 		System.out.println("QUEUE MANAGER - enqueuing send message for con id " + conMessage.getConnectionId());
-		queues.get("send").enqueue(conMessage);
+		queue.offer(new Invoker("send", conMessage));
 	}
 	
 	public ConnectionHandler getConnection(int conId){
@@ -94,20 +85,20 @@ public class QueueManager extends Thread implements IQueueManager {
 		switch(operation) {
 			case CONNECT:
 				System.out.println("QUEUE MANAGER - adding user connection");
-				queues.get("connect").enqueue(new ConnectionMessage(id, null));
+				queue.offer(new Invoker("connect", new ConnectionMessage(id, null)));
 				break;
 			case LIST:
 				System.out.println("QUEUE MANAGER - adding list connection");
-				queues.get("list").enqueue(new ConnectionMessage(id, null));
+				queue.offer(new Invoker("list", new ConnectionMessage(id, null)));
 				break;
 			case PUBLISH:
 				System.out.println("QUEUE MANAGER - adding publish connection");
-				queues.get("publish").enqueue(new ConnectionMessage(id, message));
+				queue.offer(new Invoker("publish", new ConnectionMessage(id, message)));
 				break;
 			case SUBSCRIBE:
 				System.out.println("QUEUE MANAGER - adding subscribe connection");
 				message.getPayload().addField(inetAddress.getHostAddress());
-				queues.get("subscribe").enqueue(new ConnectionMessage(id, message));
+				queue.offer(new Invoker("subscribe", new ConnectionMessage(id, message)));
 				break;
 		default:
 			break;
