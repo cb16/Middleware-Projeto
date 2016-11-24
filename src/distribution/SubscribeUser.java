@@ -5,17 +5,16 @@ import java.net.InetAddress;
 public class SubscribeUser {
 	InetAddress IPAdress;
 	int port;
-	int ID;
+	String id;
 	
-	public SubscribeUser(InetAddress IPAdress, int port, int ID) {
+	public SubscribeUser(InetAddress IPAdress, int port, String id) {
 		this.IPAdress = IPAdress;
 		this.port = port;
-		this.ID = ID;
+		this.id = id;
 	}
 	
-	public SubscribeUser(InetAddress IPAdress, int port) {
-		this.IPAdress = IPAdress;
-		this.port = port;
+	public String getId(){
+		return id;
 	}
 	
 	public InetAddress getIP() {

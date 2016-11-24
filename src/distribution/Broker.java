@@ -44,12 +44,20 @@ public class Broker extends Thread {
 					Socket socket = queueManager.getConnection(conId).getSocket();
 					InetAddress IPAdress = socket.getInetAddress();
 
-					SubscribeUser user = new SubscribeUser(IPAdress, Config.port);
+					SubscribeUser user = new SubscribeUser(IPAdress, Config.port, conId);
 					userRepo.put(conId, user);
 					
 					System.out.println("BROKER received connect request");
 					Message sendMessage = formatConnectMessage();
-					QueueManager.queue.offer(new Invoker("send", new ConnectionMessage(conMessage.getConnectionId(), sendMessage)));
+					//QueueManager.queue.offer(new Invoker("send", new ConnectionMessage(conMessage.getConnectionId(), sendMessage)));
+					ConnectionHandler conn = queueManager.getConnection(conId);
+					try {
+						conn.send(sendMessage.toByteArray());
+						conn.startSendThread();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 				
 				if(operation == "list") {

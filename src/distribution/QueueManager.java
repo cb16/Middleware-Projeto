@@ -52,17 +52,22 @@ public class QueueManager extends Thread implements IQueueManager {
 		Message message;
 		
 		ConnectionHandler thread = new ConnectionHandler(socket);
-//		thread.receive();
+
 		message = thread.connect();
 		
 		
 		if(message != null){
-			thread.start();
-			
 			id = message.getPayload().getFields().get(0);
 			thread.setId(id);
 			
-			connections.put(id, thread);
+			System.out.println("Connection: "+connections.get(id));
+			if(connections.get(id) == null){
+				// doesn't set a new thread if is a returning user
+				thread.start();
+				connections.put(id, thread);
+			} else {
+				connections.get(id).setSocket(socket);
+			}
 			thread.setReceivedMessage(message);
 		}
 	}
@@ -108,19 +113,9 @@ public class QueueManager extends Thread implements IQueueManager {
 
 	public void sendPublicationToSubscribers(Message message, ArrayList<SubscribeUser> users) {
 		for(SubscribeUser user : users) {
-			String userConId = getUserConId(user);
+			String userConId = user.getId();
 			if(userConId != "")
 				enqueueSendMessage(new ConnectionMessage(userConId, message));
 		}		
-	}
-	
-	public String getUserConId(SubscribeUser user) {
-		for(String id : connections.keySet()) {
-			ConnectionHandler thread = connections.get(id);
-			if(thread.getSocket().getInetAddress() == user.getIP()) {
-				return id;
-			}
-		}
-		return "";
 	}
 }

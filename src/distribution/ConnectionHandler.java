@@ -6,21 +6,25 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class ConnectionHandler extends Thread {
 	private Socket socket;
 	private String id;
+	public Object monitor;
 	
 	int sentMessageSize;
 	int receivedMessageSize;
 	DataOutputStream outToClient = null;
 	DataInputStream inFromClient = null;
-	Queue sendMessages = new Queue();
 	
-	byte[] messageToSend;
+	private BlockingQueue<byte[]> queue =  new LinkedBlockingQueue<byte[]>(); 
+	
 	byte[] receivedMessageBytes;
 		
 	volatile boolean keepRunning;
+	volatile boolean sendRunning;
 
 	Operation operation;
 	
@@ -28,7 +32,7 @@ public class ConnectionHandler extends Thread {
 		this.socket = socket;
 		this.receivedMessageBytes = null;
 		keepRunning = true;
-		messageToSend = null;
+		sendRunning = false;
 		operation = null;
 
 		try {
@@ -59,10 +63,41 @@ public class ConnectionHandler extends Thread {
 		return operation;
 	}
 	
+	public void startSendThread(){
+		if(!sendRunning){
+			System.out.println("Starting send thread for "+id);
+			System.out.println("Current queue: "+ queue);
+			
+			sendRunning = true;
+			
+			Thread sendThread = (new Thread() {
+				public void run() {
+					byte[] toSend = null;
+					while(keepRunning && sendRunning){
+						try {
+							toSend = queue.take();
+							send(toSend);
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (IOException e) {
+							queue.offer(toSend);
+							sendRunning = false;
+						}
+					}
+				}
+			});
+			
+			sendThread.start();
+		}
+	}
+	
 	public void run() {
-		
+		startSendThread();
 		while(keepRunning) {
-			receive();
+			if(sendRunning){
+				receive();
+			}
 		}
 	}
 	
@@ -92,7 +127,7 @@ public class ConnectionHandler extends Thread {
 			stopRunning();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+//			e.printStackTrace();
 		}
 	}
 	
@@ -129,19 +164,14 @@ public class ConnectionHandler extends Thread {
 		return null;
 	}
 	
-	public void send() {
+	public void send(byte[] messageToSend) throws IOException {
 		System.out.println("SERVER sending response");
 		
 		sentMessageSize = messageToSend.length;
-		
-		try {	
-			outToClient.writeInt(sentMessageSize);
-			outToClient.write(messageToSend, 0, sentMessageSize);
-			outToClient.flush();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	
+		outToClient.writeInt(sentMessageSize);
+		outToClient.write(messageToSend, 0, sentMessageSize);
+		outToClient.flush();
 		
 	}
 	
@@ -152,7 +182,8 @@ public class ConnectionHandler extends Thread {
 	public void stopRunning() {
 		System.out.println("BROKER - Connection " + this.id + " has been terminated");
 		
-		keepRunning = false;
+//		keepRunning = false;
+		sendRunning = false;
 		try {
 			socket.close();
 			outToClient.close();
@@ -162,13 +193,12 @@ public class ConnectionHandler extends Thread {
 			e.printStackTrace();
 		}
 		
-		QueueManager.connections.remove(this.id);
+//		QueueManager.connections.remove(this.id);
 		
 	}
 	
 	public void setSendMessage(byte[] bytesMessage) {
-		messageToSend = bytesMessage;
-		send();
+		System.out.println(queue);
 	}
 	
 	public String getThreadId() {
@@ -177,5 +207,17 @@ public class ConnectionHandler extends Thread {
 	
 	public Socket getSocket(){
 		return socket;
+	}
+
+	public void setSocket(Socket socket) {
+		this.socket = socket;
+		
+		try {
+			inFromClient = new DataInputStream(socket.getInputStream());
+			outToClient = new DataOutputStream(socket.getOutputStream());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }
