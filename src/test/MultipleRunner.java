@@ -8,7 +8,7 @@ import application.Publisher;
 import application.Subscriber;
 
 public class MultipleRunner {
-	private static final int subscriberLimit = 10;
+	private static final int subscriberLimit = 100;
 	private static final int publisherLimit = 1;
 	
 	public static void main(String[] args) {

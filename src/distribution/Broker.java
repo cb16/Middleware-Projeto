@@ -3,7 +3,6 @@ package distribution;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -13,7 +12,7 @@ public class Broker extends Thread {
 	private static TopicRepository topicRepo;
 	private static QueueManager queueManager;
 	private static String listDelimiter = "\r\n";
-	private static HashMap<InetAddress, SubscribeUser> userRepo = new HashMap<>();
+	private static HashMap<String, SubscribeUser> userRepo = new HashMap<>();
 	
 	public static void main(String[] args) throws ClassNotFoundException, IOException {
 		
@@ -46,7 +45,7 @@ public class Broker extends Thread {
 					InetAddress IPAdress = socket.getInetAddress();
 
 					SubscribeUser user = new SubscribeUser(IPAdress, Config.port);
-					userRepo.put(IPAdress, user);
+					userRepo.put(conId, user);
 					
 					System.out.println("BROKER received connect request");
 					Message sendMessage = formatConnectMessage();
@@ -69,7 +68,7 @@ public class Broker extends Thread {
 				if(operation == "subscribe") {
 					message = conMessage.getMessage();
 					System.out.println("BROKER received subscribe message");
-					repoSubscribe(message);
+					repoSubscribe(conMessage.getConnectionId(), message);
 				}
 				
 				if(operation == "send") {
@@ -124,25 +123,17 @@ public class Broker extends Thread {
 		checkTopicSubscribersAndSend(topic, message, conId);
 	}
 	
-	private static void repoSubscribe(Message message) {
+	private static void repoSubscribe(String conId, Message message) {
 		ArrayList<String> fields = message.getPayload().getFields();
 		String topic = fields.get(0);
-		InetAddress IPAdress;
+
+		SubscribeUser user = userRepo.get(conId);
 		
-		try {
-			IPAdress = InetAddress.getByName(fields.get(1));
+		if(user != null){
+			if(!topicRepo.getTopics().contains(topic))
+				createTopicInRepo(topic);
 			
-			SubscribeUser user = userRepo.get(IPAdress);
-			
-			if(user != null){
-				if(!topicRepo.getTopics().contains(topic))
-					createTopicInRepo(topic);
-				
-				topicRepo.addSubscriber(topic, user);
-			}
-		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			topicRepo.addSubscriber(topic, user);
 		}
 	}
 	

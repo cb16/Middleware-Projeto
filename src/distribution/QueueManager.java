@@ -83,7 +83,6 @@ public class QueueManager extends Thread implements IQueueManager {
 				break;
 			case SUBSCRIBE:
 				System.out.println("QUEUE MANAGER - adding subscribe connection");
-				message.getPayload().addField(inetAddress.getHostAddress());
 				queue.offer(new Invoker("subscribe", new ConnectionMessage(id, message)));
 				break;
 		default:
