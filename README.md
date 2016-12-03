@@ -12,6 +12,5 @@ Implementação de um Middleware Orientado a Mensagens, com a estrutura Cliente-
 Métodos:
 * Connect
 * Disconnect
-* List
 * Publish
 * Subscribe
